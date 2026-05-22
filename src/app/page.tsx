@@ -1,115 +1,159 @@
-import { supabase } from "@/lib/supabase";
-import Link from "next/link";
+'use client';
 
-// Force Next.js to fetch fresh data every time the page loads
-export const dynamic = "force-dynamic";
+import React, { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
-export default async function Home() {
-  // Fetch players and their associated transactions in a single query
-  const { data: playersData, error } = await supabase
-    .from("players")
-    .select(`
-      id,
-      name,
-      transactions (
-        amount
-      )
-    `)
-    .order("name");
-
-  if (error) {
-    console.error("Error fetching players:", error);
-  }
-
-  // Calculate the total balance for each player
-  const players = playersData?.map((player) => {
-    const totalBalance = player.transactions.reduce(
-      (sum, tx) => sum + Number(tx.amount),
-      0
-    );
-
-    return {
-      id: player.id,
-      name: player.name,
-      balance: totalBalance,
-    };
-  }) || [];
-
-  // Sort players: Negatives first, then Positives, then Zeros
-  players.sort((a, b) => {
-    const groupA = a.balance < 0 ? 1 : a.balance > 0 ? 2 : 3;
-    const groupB = b.balance < 0 ? 1 : b.balance > 0 ? 2 : 3;
-
-    // 1. Sort by group
-    if (groupA !== groupB) return groupA - groupB;
-
-    // 2. Within negatives, lowest number (-10) comes before (-4)
-    if (groupA === 1) return a.balance - b.balance;
-    // 3. Within positives, highest credit (10) comes before (4)
-    if (groupA === 2) return b.balance - a.balance;
-    // 4. For zero balances, sort alphabetically by name
-    return a.name.localeCompare(b.name);
+export default function ContractorRegistration() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    tradeSpecialty: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMessage('');
+
+    const { error } = await supabase
+      .from('contractors')
+      .insert([
+        {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          trade_specialty: formData.tradeSpecialty,
+          status: 'Pending',
+        }
+      ]);
+
+    if (error) {
+      console.error('Error inserting contractor:', error);
+      setMessage('Failed to register. Please ensure the email is unique and try again.');
+    } else {
+      setMessage('Registration submitted successfully!');
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', tradeSpecialty: '' });
+    }
+    
+    setIsSubmitting(false);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 pt-1">Player Balances</h1>
-        <p className="text-gray-500 mt-1">Click player to view transaction history</p>
-        <Link
-          href="/bank"
-          className="inline-flex items-center text-gray-500 hover:text-blue-600 transition-colors mt-2 font-medium"
-        >
-          Bank Details
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        </Link>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">Player Name</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider text-right">Current Balance</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {players.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
-                    No players found. Add some in the Admin dashboard!
-                  </td>
-                </tr>
-              ) : (
-                players.map((player) => (
-                  <tr key={player.id} className="hover:bg-blue-50 transition-colors group">
-                    <td className="font-medium text-gray-900 p-0">
-                      <Link href={`/player/${player.id}`} className="px-6 py-4 block w-full h-full">
-                        {player.name}
-                      </Link>
-                    </td>
-                    <td className={`text-right font-semibold p-0 ${player.balance > 0 ? "text-green-600" : player.balance < 0 ? "text-red-600" : "text-gray-500"}`}>
-                      <Link href={`/player/${player.id}`} className="px-6 py-4 block w-full h-full">
-                        {player.balance > 0 ? "+" : player.balance < 0 ? "-" : ""}£{Math.abs(player.balance).toFixed(2)}
-                      </Link>
-                    </td>
-                    <td className="p-0">
-                      <Link href={`/player/${player.id}`} className="px-6 py-4 flex items-center justify-end w-full h-full text-gray-400 group-hover:text-blue-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-4 sm:p-8">
+      <div className="max-w-2xl w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 transition-all duration-300">
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+            Contractor Registration
+          </h1>
+          <p className="text-slate-500 font-medium text-sm sm:text-base">
+            Join our premium network of professional contractors.
+          </p>
         </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label htmlFor="firstName" className="text-sm font-semibold text-slate-700">First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                placeholder="John"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="lastName" className="text-sm font-semibold text-slate-700">Last Name</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                placeholder="Doe"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-semibold text-slate-700">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+              placeholder="john.doe@example.com"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label htmlFor="phone" className="text-sm font-semibold text-slate-700">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                placeholder="(555) 123-4567"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="tradeSpecialty" className="text-sm font-semibold text-slate-700">Trade / Specialty</label>
+              <select
+                id="tradeSpecialty"
+                name="tradeSpecialty"
+                value={formData.tradeSpecialty}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
+                required
+              >
+                <option value="" disabled>Select your trade</option>
+                <option value="carpenter">Carpenter</option>
+                <option value="electrician">Electrician</option>
+                <option value="plumber">Plumber</option>
+                <option value="flooring">Flooring Specialist</option>
+                <option value="general">General Contractor</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            {message && (
+              <div className={`mb-4 p-3 rounded-xl text-sm font-semibold text-center transition-all ${message.includes('Failed') ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
+                {message}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isSubmitting ? 'Registering...' : 'Complete Registration'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
