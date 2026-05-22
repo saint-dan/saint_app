@@ -1,7 +1,7 @@
-# Football Tracker - AI System Instructions
+# Contractor App - AI System Instructions
 
 ## Project Overview
-- **Purpose:** An app to track weekly football players and record financial transactions (who paid, who owes money) for each participant.
+- **Purpose:** A premium Contractor App for managing contractors. The current phase focuses on a robust contractor registration feature, with additional features (scheduling, invoicing, etc.) to be added later.
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Supabase (Database/Auth), Vercel (Hosting).
 
 ## Architecture & Standards
@@ -19,20 +19,20 @@
 - **Large Files / `node_modules`:** `node_modules` and Next.js build outputs (`.next`) must ALWAYS remain in `.gitignore`. Pushing these to GitHub will cause repository rejection due to file size limits.
 
 ## Design & UI/UX Guidelines
-- **Aesthetics:** Clean, minimalist layouts with generous white space, a consistent, high-quality color palette, and high-quality visuals.
+- **Aesthetics:** Premium feel with clean spacing, gradient backgrounds, and a consistent, high-quality color palette.
 - **Typography:** Thoughtful typography for hierarchy and readability.
-- **Components & Styling:** Consistent UI components with depth (shadows, rounded corners).
-- **Interactions:** Smooth micro-interactions, subtle animations, and intuitive feedback.
+- **Components & Styling:** Consistent UI components with depth (subtle shadows, rounded-2xl or rounded-3xl corners).
+- **Interactions:** Smooth micro-interactions, elegant hover states on buttons/inputs, subtle animations, and intuitive feedback.
 - **Experience:** Fully responsive design that ensures an excellent layout and user experience on both mobile and desktop views. Fast performance and optimized loading are essential.
 
 ## Database Schema Reference
 Currently planned tables (to be expanded):
-1. `players`:
+1. `contractors`:
    - `id` (uuid, primary key)
-   - `name` (text)
-2. `transactions`:
-   - `id` (uuid, primary key)
-   - `player_id` (uuid, foreign key, nullable for kitty expenses/pitch bookings)
-   - `amount` (numeric, positive for paid, negative for owed)
-   - `date` (date)
-   - `type` (text, restricted to: 'Bank Payment', 'Cash Payment', 'Game Fee', 'Kitty Expense', 'Pitch Booking')
+   - `first_name` (text)
+   - `last_name` (text)
+   - `email` (text, unique)
+   - `phone` (text)
+   - `trade_specialty` (text)
+   - `status` (text, e.g., 'Pending', 'Active')
+   - `created_at` (timestamp)
