@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
   const [userEmail, setUserEmail] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   
   const [securityData, setSecurityData] = useState({
@@ -61,7 +62,7 @@ export default function ProfilePage() {
       // Fetch contractor profile
       const { data: profileData, error: profileError } = await supabase
         .from('users')
-        .select('*')
+        .select('*, roles(name)')
         .eq('id', user.id)
         .single();
 
@@ -79,6 +80,10 @@ export default function ProfilePage() {
           utr: profileData.utr_number || '',
           cisStatus: profileData.cis_status || '20%',
         });
+
+        const roleData = profileData.roles;
+        const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+        if (roleName) setUserRole(roleName);
       }
       
       setLoading(false);
@@ -270,7 +275,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Email Address</label>
                   <input
@@ -291,6 +296,19 @@ export default function ProfilePage() {
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
                     required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Account Role</label>
+                  <input
+                    type="text"
+                    value={userRole || 'No role assigned'}
+                    disabled
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
+                    title="Your role cannot be changed here"
                   />
                 </div>
               </div>
