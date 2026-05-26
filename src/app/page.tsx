@@ -127,7 +127,6 @@ export default function ContractorRegistration() {
               email: formData.email,
               phone: formattedPhone,
               primary_location_id: formData.primaryLocationId,
-              role: 'Contractor',
               status: 'Pending',
               address: formData.address,
               account_type: formData.accountType,
