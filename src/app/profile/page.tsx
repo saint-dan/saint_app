@@ -16,6 +16,11 @@ export default function ProfilePage() {
   const [userEmail, setUserEmail] = useState('');
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   
+  const [securityData, setSecurityData] = useState({
+    password: '',
+    confirmPassword: '',
+  });
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -40,6 +45,7 @@ export default function ProfilePage() {
       }
       
       setUserEmail(user.email || '');
+      // Password fields should always start blank for security.
 
       // Fetch locations for the dropdown
       const { data: locationData } = await supabase
@@ -85,6 +91,10 @@ export default function ProfilePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSecurityData({ ...securityData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -120,6 +130,60 @@ export default function ProfilePage() {
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       // Update local state with the formatted phone to reflect saved changes
       setFormData(prev => ({ ...prev, phone: formattedPhone }));
+    }
+    setSaving(false);
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+
+    if (securityData.password.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters long.' });
+      setSaving(false);
+      return;
+    }
+
+    if (securityData.password !== securityData.confirmPassword) {
+      setMessage({ type: 'error', text: 'Passwords do not match.' });
+      setSaving(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: securityData.password });
+
+    if (error) {
+      setMessage({ type: 'error', text: 'Failed to update password: ' + error.message });
+    } else {
+      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      setSecurityData({ password: '', confirmPassword: '' });
+    }
+    setSaving(false);
+  };
+
+  const handleEmailUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+
+    const newEmail = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
+
+    if (newEmail === userEmail) {
+      setMessage({ type: 'error', text: 'The new email is the same as the current one.' });
+      setSaving(false);
+      return;
+    }
+
+    const { data, error } = await supabase.auth.updateUser({ email: newEmail });
+
+    if (error) {
+      setMessage({ type: 'error', text: 'Failed to update email: ' + error.message });
+    } else {
+      setMessage({ type: 'success', text: 'A confirmation link has been sent to both your old and new email addresses.' });
+      // The user object in the session is updated, but we need to reflect the pending change in the UI.
+      // We can't just set `userEmail` to `newEmail` because it's not confirmed yet.
+      // The current approach of showing a message is best. The email in the form will reset on next page load.
     }
     setSaving(false);
   };
@@ -381,6 +445,83 @@ export default function ProfilePage() {
               </button>
             </div>
           </form>
+
+          {/* Security Section */}
+          <div className="mt-12 pt-8 border-t border-slate-100">
+            <h2 className="text-lg font-bold text-slate-900 mb-5">Security & Authentication</h2>
+            
+            {/* Update Email Form */}
+            <form onSubmit={handleEmailUpdate} className="space-y-4 mb-8">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-semibold text-slate-700">Change Email Address</label>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    defaultValue={userEmail}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                    required
+                    disabled={saving}
+                  />
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="w-full sm:w-auto flex-shrink-0 px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Saving...' : 'Update Email'}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">A confirmation will be sent to both your old and new email addresses to complete the change.</p>
+              </div>
+            </form>
+
+            {/* Update Password Form */}
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Change Password</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label htmlFor="password" className="text-xs font-semibold text-slate-600">New Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={securityData.password}
+                      onChange={handleSecurityChange}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                      placeholder="••••••••"
+                      required
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-600">Confirm New Password</label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={securityData.confirmPassword}
+                      onChange={handleSecurityChange}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                      placeholder="••••••••"
+                      required
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving...' : 'Update Password'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
