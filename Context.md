@@ -28,12 +28,13 @@
 
 ## Database Schema Reference
 Currently planned tables (to be expanded):
-1. `contractors`:
+1. `users`:
    - `id` (uuid, primary key)
    - `first_name` (text)
    - `last_name` (text)
    - `email` (text, unique)
    - `phone` (text)
+   - `role` (text or enum: 'Admin', 'Contractor', 'Finance', 'Approver')
    - `trade_specialty` (text)
    - `status` (text, e.g., 'Pending', 'Active')
    - `created_at` (timestamp)
