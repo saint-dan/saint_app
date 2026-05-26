@@ -15,6 +15,10 @@ export default function DashboardHeader({ email, profile }: DashboardHeaderProps
   const supabase = createClient();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
+  // Safely extract the role name, handling both object and array formats
+  const roleData = profile?.roles;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
@@ -53,9 +57,9 @@ export default function DashboardHeader({ email, profile }: DashboardHeaderProps
                 <div className="px-4 py-3 border-b border-slate-100 mb-1">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Signed in as</p>
                   <p className="text-sm font-bold text-slate-900 truncate">{email}</p>
-                  {profile?.roles?.name && (
+                  {roleName && (
                     <div className="mt-2 inline-block px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-slate-200">
-                      {profile.roles.name}
+                      {roleName}
                     </div>
                   )}
                 </div>
