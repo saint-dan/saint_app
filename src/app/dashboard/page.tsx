@@ -33,10 +33,16 @@ export default async function Dashboard() {
 
       {/* Main Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {profile?.roles?.name === 'Admin' ? (
-          <AdminView profile={profile} />
-        ) : (
-          <ContractorView profile={profile} />
+        {profile?.roles?.name === 'Admin' && <AdminView profile={profile} />}
+        
+        {profile?.roles?.name === 'Contractor' && <ContractorView profile={profile} />}
+        
+        {/* Fallback for any newly added roles down the line */}
+        {profile?.roles?.name !== 'Admin' && profile?.roles?.name !== 'Contractor' && (
+          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 text-center">
+            <h2 className="text-2xl font-bold text-slate-800">No dashboard configured</h2>
+            <p className="text-slate-500 mt-2">There is currently no dashboard view configured for the role: <strong>{profile?.roles?.name}</strong>.</p>
+          </div>
         )}
       </main>
     </div>
