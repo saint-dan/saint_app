@@ -19,9 +19,9 @@ export default function RootLayout({
       <body className="bg-zinc-100 text-zinc-900 min-h-screen antialiased font-sans">
         {/* Global Navigation Header */}
         <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md">
-          <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 flex justify-center items-center">
             <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
-              Contractor+
+              Contractor App
             </Link>
           </div>
         </header>

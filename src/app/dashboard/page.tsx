@@ -1,286 +1,160 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
-export default function ContractorRegistration() {
+export default function Dashboard() {
   const router = useRouter();
-  const [isLoginMode, setIsLoginMode] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    tradeSpecialty: '',
-    password: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setMessage('');
-
-    const supabase = createClient();
-
-    if (isLoginMode) {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (error) {
-        setMessage('Failed to log in: ' + error.message);
-        setIsSubmitting(false);
-      } else {
-        router.push('/dashboard');
-      }
-    } else {
-      // 1. Sign up the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (authError) {
-        setMessage('Registration failed: ' + authError.message);
-        setIsSubmitting(false);
+  useEffect(() => {
+    const fetchUserAndProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        router.push('/');
         return;
       }
 
-      // 2. Insert the contractor profile into the public.users table
-      if (authData.user) {
-        const { error: dbError } = await supabase
-          .from('users')
-          .insert([
-            {
-              id: authData.user.id,
-              first_name: formData.firstName,
-              last_name: formData.lastName,
-              email: formData.email,
-              phone: formData.phone,
-              trade_specialty: formData.tradeSpecialty,
-              role: 'Contractor',
-              status: 'Pending',
-            }
-          ]);
+      // Fetch contractor profile from the public.users table
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-        if (dbError) {
-          console.error('Error inserting user:', dbError);
-          setMessage('Auth succeeded, but profile creation failed.');
-        } else {
-          setMessage('Registration successful! You can now log in.');
-          setFormData({ firstName: '', lastName: '', email: '', phone: '', tradeSpecialty: '', password: '' });
-          setIsLoginMode(true);
-        }
-      }
-      setIsSubmitting(false);
-    }
+      setUser(user);
+      setProfile(userProfile);
+      setLoading(false);
+    };
+
+    fetchUserAndProfile();
+  }, [router, supabase]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
-  const handleResetPassword = async () => {
-    if (!formData.email) {
-      setMessage('Please enter your email address to reset your password.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setMessage('');
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-      redirectTo: `${window.location.origin}/update-password`,
-    });
-
-    if (error) {
-      setMessage('Failed to send reset link: ' + error.message);
-    } else {
-      setMessage('Password reset link sent to your email.');
-    }
-    setIsSubmitting(false);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-4 sm:p-8">
-      <div className="max-w-2xl w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 transition-all duration-300">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
-            {isLoginMode ? 'Contractor Login' : 'Contractor Registration'}
-          </h1>
-          <p className="text-slate-500 font-medium text-sm sm:text-base">
-            {isLoginMode ? 'Welcome back. Please log in to your account.' : 'Join our premium network of professional contractors.'}
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {!isLoginMode && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-semibold text-slate-700">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="John"
-                  required={!isLoginMode}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-semibold text-slate-700">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="Doe"
-                  required={!isLoginMode}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-semibold text-slate-700">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-              placeholder="john.doe@example.com"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="text-sm font-semibold text-slate-700">Password</label>
-              {isLoginMode && (
-                <button
-                  type="button"
-                  onClick={handleResetPassword}
-                  disabled={isSubmitting}
-                  className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Forgot password?
-                </button>
-              )}
-            </div>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                placeholder="••••••••"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {!isLoginMode && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-semibold text-slate-700">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="(555) 123-4567"
-                  required={!isLoginMode}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="tradeSpecialty" className="text-sm font-semibold text-slate-700">Trade / Specialty</label>
-                <select
-                  id="tradeSpecialty"
-                  name="tradeSpecialty"
-                  value={formData.tradeSpecialty}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
-                  required={!isLoginMode}
-                >
-                  <option value="" disabled>Select your trade</option>
-                  <option value="carpenter">Carpenter</option>
-                  <option value="electrician">Electrician</option>
-                  <option value="plumber">Plumber</option>
-                  <option value="flooring">Flooring Specialist</option>
-                  <option value="general">General Contractor</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          <div className="pt-4">
-            {message && (
-              <div className={`mb-4 p-3 rounded-xl text-sm font-semibold text-center transition-all ${message.includes('Failed') ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
-                {message}
-              </div>
-            )}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isSubmitting 
-                ? (isLoginMode ? 'Logging in...' : 'Registering...') 
-                : (isLoginMode ? 'Log In' : 'Complete Registration')}
-            </button>
-          </div>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-slate-600 text-sm">
-            {isLoginMode ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => {
-                setIsLoginMode(!isLoginMode);
-                setMessage('');
-              }}
-              className="text-blue-600 font-bold hover:text-blue-800 hover:underline transition-all"
-            >
-              {isLoginMode ? 'Register here' : 'Log in'}
-            </button>
-          </p>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] w-full">
+        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin shadow-sm">
+          <span className="sr-only">Loading...</span>
         </div>
       </div>
+    );
+  }
+
+  const status = profile?.status || 'Pending';
+  const statusStyle = status === 'Active' 
+    ? 'bg-green-100 text-green-700 border-green-200' 
+    : 'bg-amber-100 text-amber-700 border-amber-200';
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Secondary Dashboard Header */}
+      <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Dashboard</h1>
+
+          {/* Profile Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="flex items-center gap-3 p-1 pr-3 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 focus:outline-none transition-all duration-200"
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 font-bold shadow-sm border border-blue-200">
+                {profile?.first_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:block text-sm font-semibold text-slate-700">
+                {profile?.first_name ? `${profile.first_name} ${profile.last_name}` : user?.email}
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Dropdown Overlay & Menu */}
+            {isProfileMenuOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setIsProfileMenuOpen(false)} 
+                />
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 py-2 z-50 transform origin-top-right transition-all">
+                  <div className="px-4 py-3 border-b border-slate-100 mb-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Signed in as</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{user?.email}</p>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      alert('Profile Settings coming soon!');
+                    }}
+                    className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-4 h-4 mr-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Profile Settings
+                  </button>
+                  
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-4 h-4 mr-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Log out
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Dashboard Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Welcome back, {profile?.first_name || 'Contractor'}!
+              </h2>
+              <p className="text-slate-500 font-medium mt-2">
+                This is your central hub for managing your contractor profile and viewing upcoming jobs.
+              </p>
+            </div>
+            <div className={`px-4 py-2 rounded-xl font-bold text-sm border shadow-sm flex items-center gap-2 ${statusStyle}`}>
+              <div className={`w-2 h-2 rounded-full ${status === 'Active' ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
+              {status} Profile
+            </div>
+          </div>
+          
+          {/* Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl border border-blue-100 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-blue-900 mb-2">Active Jobs</h3>
+              <p className="text-blue-700 text-4xl font-extrabold tracking-tight">0</p>
+            </div>
+            
+            <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl border border-slate-200 hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-slate-800 mb-2">Pending Invoices</h3>
+              <p className="text-slate-700 text-4xl font-extrabold tracking-tight">0</p>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
