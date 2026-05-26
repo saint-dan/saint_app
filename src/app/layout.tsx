@@ -19,12 +19,12 @@ export default function RootLayout({
       <body className="bg-zinc-100 text-zinc-900 min-h-screen antialiased font-sans">
         {/* Global Navigation Header */}
         <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md">
-          <div className="max-w-4xl mx-auto px-4 md:px-8 py-2.5 flex justify-center items-center">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 py-1 flex justify-center items-center">
             <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
               <img 
                 src="https://6548935.app.netsuite.com/core/media/media.nl?id=12904734&c=6548935&h=lTRR7c30QxWFNVKbRyFb33OSd6KKQTdFVchouUxSK4Am28ls" 
                 alt="Saint Flooring Logo" 
-                className="w-11 h-11 object-contain"
+                className="w-14 h-14 object-contain"
               />
               Contractor App
             </Link>
