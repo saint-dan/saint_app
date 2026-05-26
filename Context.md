@@ -6,8 +6,10 @@
 
 ## Architecture & Standards
 - **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
+- **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
+- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.
-- **Database:** Supabase. The initialized client is located at `src/lib/supabase.ts`.
+- **Database:** Supabase. The initialized clients for server (`server.ts`) and client (`client.ts`) are located in `src/utils/supabase/`.
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
 
 ## Security
@@ -34,12 +36,18 @@ Currently planned tables (to be expanded):
    - `last_name` (text)
    - `email` (text, unique)
    - `phone` (text)
-   - `role` (enum user_role: 'Contractor', 'Admin', default: 'Contractor')
+   - `role_id` (uuid, foreign key to roles.id)
    - `primary_location_id` (uuid, foreign key to locations.id)
    - `status` (text, e.g., 'Pending', 'Active')
    - `created_at` (timestamp)
 
-2. `locations`:
+2. `roles`:
+   - `id` (uuid, primary key)
+   - `name` (text, unique)
+   - `description` (text)
+   - `created_at` (timestamp)
+
+3. `locations`:
    - `id` (uuid, primary key)
    - `name` (text)
    - `netsuite_id` (text)

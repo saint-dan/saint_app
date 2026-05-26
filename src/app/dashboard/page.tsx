@@ -8,7 +8,8 @@ export interface UserProfile {
   first_name: string;
   last_name: string;
   email: string;
-  role: 'Contractor' | 'Admin';
+  role_id: string;
+  roles?: { name: string } | null;
   status: string;
 }
 
@@ -22,7 +23,7 @@ export default async function Dashboard() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('*')
+    .select('*, roles(name)')
     .eq('id', user.id)
     .single();
 
@@ -32,7 +33,7 @@ export default async function Dashboard() {
 
       {/* Main Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {profile?.role === 'Admin' ? (
+        {profile?.roles?.name === 'Admin' ? (
           <AdminView profile={profile} />
         ) : (
           <ContractorView profile={profile} />
