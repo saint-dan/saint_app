@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "Contractor App",
@@ -37,6 +38,7 @@ export default function RootLayout({
         </main>
         <Analytics />
         <SpeedInsights />
+        <InstallPrompt />
       </body>
     </html>
   );
