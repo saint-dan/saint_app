@@ -205,7 +205,7 @@ export default function ProfilePage() {
         {/* Header Section */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Profile Settings</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Profile</h1>
             <p className="text-slate-500 font-medium mt-1">Manage your personal, professional, and tax details.</p>
           </div>
           <Link 
