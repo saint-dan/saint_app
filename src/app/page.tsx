@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function ContractorRegistration() {
   const router = useRouter();
   const [isLoginMode, setIsLoginMode] = useState(false);
+  const [step, setStep] = useState(1);
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -15,6 +16,13 @@ export default function ContractorRegistration() {
     phone: '',
     primaryLocationId: '',
     password: '',
+    address: '',
+    accountType: 'Self-Employed',
+    nationalInsurance: '',
+    companyName: '',
+    companyRegNumber: '',
+    utr: '',
+    cisStatus: '20%',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -40,8 +48,31 @@ export default function ContractorRegistration() {
     fetchLocations();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleNextStep = () => {
+    setMessage('');
+    // Basic validation for Step 1
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.phone || !formData.primaryLocationId) {
+      setMessage('Please fill in all required fields before continuing.');
+      return;
+    }
+
+    const cleanPhone = formData.phone.replace(/\s+/g, '');
+    const ukMobileRegex = /^(?:07\d{9}|\+447\d{9})$/;
+    if (!ukMobileRegex.test(cleanPhone)) {
+      setMessage('Please enter a valid UK mobile number (e.g., 07123 456789).');
+      return;
+    }
+
+    setStep(2);
+  };
+
+  const handlePrevStep = () => {
+    setMessage('');
+    setStep(1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,13 +84,6 @@ export default function ContractorRegistration() {
 
     if (!isLoginMode) {
       const cleanPhone = formData.phone.replace(/\s+/g, '');
-      const ukMobileRegex = /^(?:07\d{9}|\+447\d{9})$/;
-      if (!ukMobileRegex.test(cleanPhone)) {
-        setMessage('Please enter a valid UK mobile number (e.g., 07123 456789).');
-        setIsSubmitting(false);
-        return;
-      }
-
       // Automatically format '07...' to '+447...' and ensure spaces are stripped
       formattedPhone = cleanPhone.startsWith('07') ? '+44' + cleanPhone.slice(1) : cleanPhone;
     }
@@ -92,7 +116,7 @@ export default function ContractorRegistration() {
       }
 
       // 2. Insert the contractor profile into the public.users table
-      if (authData.user) {
+      if (authData?.user) {
         const { error: dbError } = await supabase
           .from('users')
           .insert([
@@ -105,6 +129,13 @@ export default function ContractorRegistration() {
               primary_location_id: formData.primaryLocationId,
               role: 'Contractor',
               status: 'Pending',
+              address: formData.address,
+              account_type: formData.accountType,
+              national_insurance: formData.accountType === 'Self-Employed' ? formData.nationalInsurance : null,
+              company_name: formData.accountType === 'Limited Company' ? formData.companyName : null,
+              company_reg_number: formData.accountType === 'Limited Company' ? formData.companyRegNumber : null,
+              utr_number: formData.utr,
+              cis_status: formData.cisStatus,
             }
           ]);
 
@@ -113,7 +144,11 @@ export default function ContractorRegistration() {
           setMessage('Auth succeeded, but profile creation failed.');
         } else {
           setMessage('Registration successful! You can now log in.');
-          setFormData({ firstName: '', lastName: '', email: '', phone: '', primaryLocationId: '', password: '' });
+          setFormData({ 
+            firstName: '', lastName: '', email: '', phone: '', primaryLocationId: '', password: '',
+            address: '', accountType: 'Self-Employed', nationalInsurance: '', companyName: '', companyRegNumber: '', utr: '', cisStatus: '20%'
+          });
+          setStep(1);
           setIsLoginMode(true);
         }
       }
@@ -151,12 +186,15 @@ export default function ContractorRegistration() {
             {isLoginMode ? 'Contractor Login' : 'Contractor Registration'}
           </h1>
           <p className="text-slate-500 font-medium text-sm sm:text-base">
-            {isLoginMode ? 'Welcome back. Please log in to your account.' : 'Join our premium network of professional contractors.'}
+            {isLoginMode 
+              ? 'Welcome back. Please log in to your account.' 
+              : step === 1 ? 'Step 1 of 2: Let\'s get your basic details.' : 'Step 2 of 2: Professional & Tax Profile.'
+            }
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {!isLoginMode && (
+          {(!isLoginMode && step === 1) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label htmlFor="firstName" className="text-sm font-semibold text-slate-700">First Name</label>
@@ -168,7 +206,7 @@ export default function ContractorRegistration() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
                   placeholder="John"
-                  required={!isLoginMode}
+                  required={!isLoginMode && step === 1}
                 />
               </div>
               <div className="space-y-2">
@@ -181,12 +219,14 @@ export default function ContractorRegistration() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
                   placeholder="Doe"
-                  required={!isLoginMode}
+                  required={!isLoginMode && step === 1}
                 />
               </div>
             </div>
           )}
 
+          {(isLoginMode || (!isLoginMode && step === 1)) && (
+            <>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-semibold text-slate-700">Email Address</label>
             <input
@@ -197,7 +237,7 @@ export default function ContractorRegistration() {
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
               placeholder="john.doe@example.com"
-              required
+                  required={isLoginMode || step === 1}
             />
           </div>
 
@@ -224,7 +264,7 @@ export default function ContractorRegistration() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
                 placeholder="••••••••"
-                required
+                    required={isLoginMode || step === 1}
               />
               <button
                 type="button"
@@ -245,8 +285,10 @@ export default function ContractorRegistration() {
               </button>
             </div>
           </div>
+            </>
+          )}
 
-          {!isLoginMode && (
+          {(!isLoginMode && step === 1) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label htmlFor="phone" className="text-sm font-semibold text-slate-700">Mobile Number</label>
@@ -258,7 +300,7 @@ export default function ContractorRegistration() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
                   placeholder="07123 456789"
-                  required={!isLoginMode}
+                  required={!isLoginMode && step === 1}
                 />
               </div>
 
@@ -270,7 +312,7 @@ export default function ContractorRegistration() {
                   value={formData.primaryLocationId}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
-                  required={!isLoginMode}
+                  required={!isLoginMode && step === 1}
                 >
                   <option value="" disabled>Select your location</option>
                   {locations.map(location => (
@@ -281,21 +323,153 @@ export default function ContractorRegistration() {
             </div>
           )}
 
+          {(!isLoginMode && step === 2) && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-2">
+                <label htmlFor="address" className="text-sm font-semibold text-slate-700">Full UK Address</label>
+                <textarea
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow resize-none"
+                  placeholder="123 Example Street&#10;City&#10;Postcode"
+                  required={step === 2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="accountType" className="text-sm font-semibold text-slate-700">Type of Account</label>
+                <select
+                  id="accountType"
+                  name="accountType"
+                  value={formData.accountType}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
+                >
+                  <option value="Self-Employed">Self-Employed</option>
+                  <option value="Limited Company">Limited Company</option>
+                </select>
+              </div>
+
+              {formData.accountType === 'Self-Employed' ? (
+                <div className="space-y-2">
+                  <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
+                  <input
+                    type="text"
+                    id="nationalInsurance"
+                    name="nationalInsurance"
+                    value={formData.nationalInsurance}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow uppercase"
+                    placeholder="QQ 12 34 56 A"
+                    required={step === 2 && formData.accountType === 'Self-Employed'}
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
+                    <input
+                      type="text"
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                      placeholder="Saint Flooring Ltd"
+                      required={step === 2 && formData.accountType === 'Limited Company'}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="companyRegNumber" className="text-sm font-semibold text-slate-700">Company Reg Number</label>
+                    <input
+                      type="text"
+                      id="companyRegNumber"
+                      name="companyRegNumber"
+                      value={formData.companyRegNumber}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                      placeholder="12345678"
+                      required={step === 2 && formData.accountType === 'Limited Company'}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
+                  <input
+                    type="text"
+                    id="utr"
+                    name="utr"
+                    value={formData.utr}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                    placeholder="12345 67890"
+                    required={step === 2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
+                  <select
+                    id="cisStatus"
+                    name="cisStatus"
+                    value={formData.cisStatus}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
+                  >
+                    <option value="20%">20% Deduction</option>
+                    <option value="30%">30% Deduction</option>
+                    <option value="Gross">Gross (0% Deduction)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="pt-4">
             {message && (
               <div className={`mb-4 p-3 rounded-xl text-sm font-semibold text-center transition-all ${message.includes('Failed') ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
                 {message}
               </div>
             )}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isSubmitting 
-                ? (isLoginMode ? 'Logging in...' : 'Registering...') 
-                : (isLoginMode ? 'Log In' : 'Complete Registration')}
-            </button>
+            
+            <div className="flex gap-4">
+              {(!isLoginMode && step === 2) && (
+                <button
+                  type="button"
+                  onClick={handlePrevStep}
+                  disabled={isSubmitting}
+                  className="w-1/3 py-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  Back
+                </button>
+              )}
+              
+              {(!isLoginMode && step === 1) ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out"
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`${(!isLoginMode && step === 2) ? 'w-2/3' : 'w-full'} py-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none`}
+                >
+                  {isSubmitting 
+                    ? (isLoginMode ? 'Logging in...' : 'Registering...') 
+                    : (isLoginMode ? 'Log In' : 'Complete Registration')}
+                </button>
+              )}
+            </div>
           </div>
         </form>
 
@@ -305,6 +479,7 @@ export default function ContractorRegistration() {
             <button
               onClick={() => {
                 setIsLoginMode(!isLoginMode);
+                setStep(1);
                 setMessage('');
               }}
               className="text-blue-600 font-bold hover:text-blue-800 hover:underline transition-all"
