@@ -20,7 +20,7 @@ export default function RootLayout({
         {/* Global Navigation Header */}
         <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md">
           <div className="max-w-4xl mx-auto px-4 md:px-8 py-0 flex justify-center items-center">
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
+            <Link href="/dashboard" className="flex items-center gap-2 text-xl font-bold tracking-tight hover:opacity-90 transition-opacity">
               <img 
                 src="https://6548935.app.netsuite.com/core/media/media.nl?id=12904734&c=6548935&h=lTRR7c30QxWFNVKbRyFb33OSd6KKQTdFVchouUxSK4Am28ls" 
                 alt="Saint Flooring Logo" 
