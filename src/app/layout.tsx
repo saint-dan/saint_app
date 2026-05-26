@@ -24,7 +24,7 @@ export default function RootLayout({
               <img 
                 src="https://6548935.app.netsuite.com/core/media/media.nl?id=12904734&c=6548935&h=lTRR7c30QxWFNVKbRyFb33OSd6KKQTdFVchouUxSK4Am28ls" 
                 alt="Saint Flooring Logo" 
-                className="w-8 h-8 object-contain"
+                className="w-11 h-11 object-contain"
               />
               Contractor App
             </Link>
