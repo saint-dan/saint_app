@@ -1,23 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function ContractorRegistration() {
   const router = useRouter();
   const [isLoginMode, setIsLoginMode] = useState(false);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    tradeSpecialty: '',
+    primaryLocationId: '',
     password: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Fetch active locations on component mount
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (data && !error) {
+        setLocations(data);
+      }
+    };
+    
+    fetchLocations();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -66,7 +85,7 @@ export default function ContractorRegistration() {
               last_name: formData.lastName,
               email: formData.email,
               phone: formData.phone,
-              trade_specialty: formData.tradeSpecialty,
+              primary_location_id: formData.primaryLocationId,
               role: 'Contractor',
               status: 'Pending',
             }
@@ -77,7 +96,7 @@ export default function ContractorRegistration() {
           setMessage('Auth succeeded, but profile creation failed.');
         } else {
           setMessage('Registration successful! You can now log in.');
-          setFormData({ firstName: '', lastName: '', email: '', phone: '', tradeSpecialty: '', password: '' });
+          setFormData({ firstName: '', lastName: '', email: '', phone: '', primaryLocationId: '', password: '' });
           setIsLoginMode(true);
         }
       }
@@ -227,22 +246,19 @@ export default function ContractorRegistration() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="tradeSpecialty" className="text-sm font-semibold text-slate-700">Trade / Specialty</label>
+                <label htmlFor="primaryLocationId" className="text-sm font-semibold text-slate-700">Primary Location</label>
                 <select
-                  id="tradeSpecialty"
-                  name="tradeSpecialty"
-                  value={formData.tradeSpecialty}
+                  id="primaryLocationId"
+                  name="primaryLocationId"
+                  value={formData.primaryLocationId}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
                   required={!isLoginMode}
                 >
-                  <option value="" disabled>Select your trade</option>
-                  <option value="carpenter">Carpenter</option>
-                  <option value="electrician">Electrician</option>
-                  <option value="plumber">Plumber</option>
-                  <option value="flooring">Flooring Specialist</option>
-                  <option value="general">General Contractor</option>
-                  <option value="other">Other</option>
+                  <option value="" disabled>Select your location</option>
+                  {locations.map(location => (
+                    <option key={location.id} value={location.id}>{location.name}</option>
+                  ))}
                 </select>
               </div>
             </div>

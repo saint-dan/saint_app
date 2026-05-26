@@ -35,6 +35,13 @@ Currently planned tables (to be expanded):
    - `email` (text, unique)
    - `phone` (text)
    - `role` (enum user_role: 'Contractor', 'Admin', default: 'Contractor')
-   - `trade_specialty` (text)
+   - `primary_location_id` (uuid, foreign key to locations.id)
    - `status` (text, e.g., 'Pending', 'Active')
+   - `created_at` (timestamp)
+
+2. `locations`:
+   - `id` (uuid, primary key)
+   - `name` (text)
+   - `netsuite_id` (text)
+   - `is_active` (boolean, default: true)
    - `created_at` (timestamp)
