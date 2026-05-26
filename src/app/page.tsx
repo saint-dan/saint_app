@@ -32,6 +32,8 @@ export default function ContractorRegistration() {
       
       if (data && !error) {
         setLocations(data);
+      } else if (error) {
+        console.error('Error fetching locations:', error.message);
       }
     };
     
@@ -46,6 +48,21 @@ export default function ContractorRegistration() {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
+
+    let formattedPhone = formData.phone;
+
+    if (!isLoginMode) {
+      const cleanPhone = formData.phone.replace(/\s+/g, '');
+      const ukMobileRegex = /^(?:07\d{9}|\+447\d{9})$/;
+      if (!ukMobileRegex.test(cleanPhone)) {
+        setMessage('Please enter a valid UK mobile number (e.g., 07123 456789).');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Automatically format '07...' to '+447...' and ensure spaces are stripped
+      formattedPhone = cleanPhone.startsWith('07') ? '+44' + cleanPhone.slice(1) : cleanPhone;
+    }
 
     const supabase = createClient();
 
@@ -84,7 +101,7 @@ export default function ContractorRegistration() {
               first_name: formData.firstName,
               last_name: formData.lastName,
               email: formData.email,
-              phone: formData.phone,
+              phone: formattedPhone,
               primary_location_id: formData.primaryLocationId,
               role: 'Contractor',
               status: 'Pending',
@@ -232,7 +249,7 @@ export default function ContractorRegistration() {
           {!isLoginMode && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-semibold text-slate-700">Phone Number</label>
+                <label htmlFor="phone" className="text-sm font-semibold text-slate-700">Mobile Number</label>
                 <input
                   type="tel"
                   id="phone"
@@ -240,7 +257,7 @@ export default function ContractorRegistration() {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="(555) 123-4567"
+                  placeholder="07123 456789"
                   required={!isLoginMode}
                 />
               </div>

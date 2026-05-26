@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
-  title: "Contractor+",
+  title: "Contractor App",
   description: "Premium Contractor Management",
 };
 
