@@ -2,10 +2,11 @@
 
 ## Project Overview
 - **Purpose:** A premium Contractor App for managing contractors. The current phase focuses on a robust contractor registration feature, with additional features (scheduling, invoicing, etc.) to be added later.
-- **Tech Stack:** Next.js (App Router), TypeScript, React, Supabase (Database/Auth), Vercel (Hosting).
+- **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 
 ## Architecture & Standards
 - **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
+- **Authentication:** Cookie-based Authentication using Supabase.
 - **Database:** Supabase. The initialized client is located at `src/lib/supabase.ts`.
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
 
