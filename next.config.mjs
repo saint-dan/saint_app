@@ -9,6 +9,8 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Your standard Next.js configuration goes here
+  // Silences the warning so you can use lightning-fast Turbopack in local dev
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);
