@@ -146,7 +146,7 @@ export default function ProfilePage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Profile</h1>
-            <p className="text-slate-500 font-medium mt-1">Manage your personal, professional, and tax details.</p>
+            <p className="text-slate-500 font-medium mt-1">Manage your profile and account details.</p>
           </div>
           <Link 
             href="/dashboard"
@@ -267,111 +267,113 @@ export default function ProfilePage() {
             </div>
 
             {/* Section 2: Contractor Details */}
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contractor Details</h2>
-              
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
-                  <input
-                    type="text"
-                    id="companyName"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                    required={formData.accountType === 'Limited Company'}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="address" className="text-sm font-semibold text-slate-700">Address</label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {userRole === 'Contractor' && (
+              <div>
+                <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contractor Details</h2>
+                
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <label htmlFor="accountType" className="text-sm font-semibold text-slate-700">Type of Account</label>
-                    <select
-                      id="accountType"
-                      name="accountType"
-                      value={formData.accountType}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                    >
-                      <option value="Self-Employed">Self-Employed</option>
-                      <option value="Limited Company">Limited Company</option>
-                    </select>
-                  </div>
-
-                  {formData.accountType === 'Self-Employed' ? (
-                    <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
-                      <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
-                      <input
-                        type="text"
-                        id="nationalInsurance"
-                        name="nationalInsurance"
-                        value={formData.nationalInsurance}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm uppercase"
-                        required={formData.accountType === 'Self-Employed'}
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
-                      <label htmlFor="companyRegNumber" className="text-sm font-semibold text-slate-700">Company Reg Number</label>
-                      <input
-                        type="text"
-                        id="companyRegNumber"
-                        name="companyRegNumber"
-                        value={formData.companyRegNumber}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                        required={formData.accountType === 'Limited Company'}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
+                    <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
                     <input
                       type="text"
-                      id="utr"
-                      name="utr"
-                      value={formData.utr}
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                      required
+                      required={formData.accountType === 'Limited Company'}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
-                    <select
-                      id="cisStatus"
-                      name="cisStatus"
-                      value={formData.cisStatus}
+                    <label htmlFor="address" className="text-sm font-semibold text-slate-700">Address</label>
+                    <textarea
+                      id="address"
+                      name="address"
+                      value={formData.address}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                    >
-                      <option value="20%">20% Deduction</option>
-                      <option value="30%">30% Deduction</option>
-                      <option value="Gross">Gross (0% Deduction)</option>
-                    </select>
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label htmlFor="accountType" className="text-sm font-semibold text-slate-700">Type of Account</label>
+                      <select
+                        id="accountType"
+                        name="accountType"
+                        value={formData.accountType}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
+                      >
+                        <option value="Self-Employed">Self-Employed</option>
+                        <option value="Limited Company">Limited Company</option>
+                      </select>
+                    </div>
+
+                    {formData.accountType === 'Self-Employed' ? (
+                      <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
+                        <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
+                        <input
+                          type="text"
+                          id="nationalInsurance"
+                          name="nationalInsurance"
+                          value={formData.nationalInsurance}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm uppercase"
+                          required={formData.accountType === 'Self-Employed'}
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
+                        <label htmlFor="companyRegNumber" className="text-sm font-semibold text-slate-700">Company Reg Number</label>
+                        <input
+                          type="text"
+                          id="companyRegNumber"
+                          name="companyRegNumber"
+                          value={formData.companyRegNumber}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                          required={formData.accountType === 'Limited Company'}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
+                      <input
+                        type="text"
+                        id="utr"
+                        name="utr"
+                        value={formData.utr}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
+                      <select
+                        id="cisStatus"
+                        name="cisStatus"
+                        value={formData.cisStatus}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
+                      >
+                        <option value="20%">20% Deduction</option>
+                        <option value="30%">30% Deduction</option>
+                        <option value="Gross">Gross (0% Deduction)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Submit Button */}
             <div className="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end items-center gap-4 sm:gap-6">
