@@ -111,7 +111,7 @@ export default function ProfilePage() {
         address: formData.address,
         account_type: formData.accountType,
         national_insurance: formData.accountType === 'Self-Employed' ? formData.nationalInsurance : null,
-        company_name: formData.accountType === 'Limited Company' ? formData.companyName : null,
+        company_name: formData.companyName,
         company_reg_number: formData.accountType === 'Limited Company' ? formData.companyRegNumber : null,
         utr_number: formData.utr,
         cis_status: formData.cisStatus,
@@ -218,7 +218,7 @@ export default function ProfilePage() {
                     value={userEmail}
                     disabled
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
-                    title="Email cannot be changed here"
+                    title="If you need to change this, please contact Saint Flooring"
                   />
                 </div>
                 <div className="space-y-2">
@@ -242,9 +242,9 @@ export default function ProfilePage() {
                     id="primaryLocationId"
                     name="primaryLocationId"
                     value={formData.primaryLocationId}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                    required
+                    disabled
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
+                    title="If you need to change this, please contact Saint Flooring"
                   >
                     <option value="" disabled>Select your location</option>
                     {locations.map(location => (
@@ -260,22 +260,9 @@ export default function ProfilePage() {
                     value={userRole || 'No role assigned'}
                     disabled
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
-                    title="Your role cannot be changed here"
+                    title="If you need to change this, please contact Saint Flooring"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="address" className="text-sm font-semibold text-slate-700">Full UK Address</label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
-                  required
-                />
               </div>
             </div>
 
@@ -285,47 +272,61 @@ export default function ProfilePage() {
               
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="accountType" className="text-sm font-semibold text-slate-700">Type of Account</label>
-                  <select
-                    id="accountType"
-                    name="accountType"
-                    value={formData.accountType}
+                  <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
+                  <input
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    value={formData.companyName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                  >
-                    <option value="Self-Employed">Self-Employed</option>
-                    <option value="Limited Company">Limited Company</option>
-                  </select>
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                    required={formData.accountType === 'Limited Company'}
+                  />
                 </div>
 
-                {formData.accountType === 'Self-Employed' ? (
-                  <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
-                    <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
-                    <input
-                      type="text"
-                      id="nationalInsurance"
-                      name="nationalInsurance"
-                      value={formData.nationalInsurance}
+                <div className="space-y-2">
+                  <label htmlFor="address" className="text-sm font-semibold text-slate-700">Address</label>
+                  <textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label htmlFor="accountType" className="text-sm font-semibold text-slate-700">Type of Account</label>
+                    <select
+                      id="accountType"
+                      name="accountType"
+                      value={formData.accountType}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm uppercase"
-                      required={formData.accountType === 'Self-Employed'}
-                    />
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
+                    >
+                      <option value="Self-Employed">Self-Employed</option>
+                      <option value="Limited Company">Limited Company</option>
+                    </select>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in zoom-in-95 duration-300">
-                    <div className="space-y-2">
-                      <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
+
+                  {formData.accountType === 'Self-Employed' ? (
+                    <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
+                      <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
                       <input
                         type="text"
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
+                        id="nationalInsurance"
+                        name="nationalInsurance"
+                        value={formData.nationalInsurance}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                        required={formData.accountType === 'Limited Company'}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm uppercase"
+                        required={formData.accountType === 'Self-Employed'}
                       />
                     </div>
-                    <div className="space-y-2">
+                  ) : (
+                    <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
                       <label htmlFor="companyRegNumber" className="text-sm font-semibold text-slate-700">Company Reg Number</label>
                       <input
                         type="text"
@@ -337,8 +338,8 @@ export default function ProfilePage() {
                         required={formData.accountType === 'Limited Company'}
                       />
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
