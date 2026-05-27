@@ -5,9 +5,25 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import InstallPrompt from "@/components/InstallPrompt";
 
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "Contractor App",
   description: "Premium Contractor Management",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Contractor App",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
