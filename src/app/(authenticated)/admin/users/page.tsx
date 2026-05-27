@@ -3,10 +3,11 @@ import { createClient } from '@/utils/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import UsersTable from './UsersTable';
 
-type RoleData = { name: string } | { name: string }[] | null | undefined;
+export type RoleData = { name: string } | { name: string }[] | null | undefined;
 
-interface UserRow {
+export interface UserRow {
   id: string;
   first_name: string | null;
   last_name: string | null;
@@ -83,69 +84,11 @@ export default async function UsersPage() {
           <div className="p-8 sm:px-10 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Users</h1>
-              <p className="text-slate-500 font-medium mt-2">Manage all registered users and contractors.</p>
+              <p className="text-slate-500 font-medium mt-2">Manage all registered users.</p>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="py-4 px-8 sm:px-10 text-xs font-bold text-slate-500 uppercase tracking-wider">Name</th>
-                  <th className="py-4 px-8 sm:px-10 text-xs font-bold text-slate-500 uppercase tracking-wider">Role</th>
-                  <th className="py-4 px-8 sm:px-10 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="py-4 px-8 sm:px-10 text-xs font-bold text-slate-500 uppercase tracking-wider">Created</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {users?.map((u: UserRow) => {
-                  const roleData = u.roles;
-                  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-                  
-                  const statusStyle = u.status === 'Active' 
-                    ? 'bg-green-100 text-green-700 border-green-200' 
-                    : u.status === 'Pending'
-                    ? 'bg-amber-100 text-amber-700 border-amber-200'
-                    : 'bg-slate-100 text-slate-700 border-slate-200';
-
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="py-5 px-8 sm:px-10">
-                        <div className="font-bold text-slate-900">{u.first_name} {u.last_name}</div>
-                      </td>
-                      <td className="py-5 px-8 sm:px-10">
-                        <span className="text-sm font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
-                          {roleName || 'Unassigned'}
-                        </span>
-                      </td>
-                      <td className="py-5 px-8 sm:px-10">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusStyle}`}>
-                          {u.status || 'Pending'}
-                        </span>
-                      </td>
-                      <td className="py-5 px-8 sm:px-10 text-sm font-medium text-slate-500">
-                        {new Date(u.created_at).toLocaleString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {(!users || users.length === 0) && (
-                  <tr>
-                    <td colSpan={4} className="py-12 text-center text-slate-500 font-medium">
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <UsersTable users={users} />
         </div>
       </main>
     </div>
