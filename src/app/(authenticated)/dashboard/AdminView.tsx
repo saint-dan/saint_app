@@ -1,11 +1,15 @@
 import React from 'react';
 import { UserProfile } from './page';
-import { createClient } from '@/utils/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export default async function AdminView({ profile }: { profile: UserProfile | null }) {
-  const supabase = await createClient();
+  // Use the service_role key to bypass Row Level Security (RLS) for accurate counts
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  const { count: pendingCount } = await supabase
+  const { count: pendingCount } = await supabaseAdmin
     .from('users')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'Pending');

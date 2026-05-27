@@ -1,5 +1,6 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -39,8 +40,14 @@ export default async function UsersPage() {
     redirect('/dashboard');
   }
 
+  // Use the service_role key to bypass Row Level Security (RLS) so the admin can see all users
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   // Fetch all users with their roles assigned
-  const { data: rawUsers } = await supabase
+  const { data: rawUsers } = await supabaseAdmin
     .from('users')
     .select(`
       id,
