@@ -3,14 +3,9 @@
 import React, { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { UserProfile } from './page';
+import Link from 'next/link';
 
-interface DashboardHeaderProps {
-  email?: string;
-  profile: UserProfile | null;
-}
-
-export default function DashboardHeader({ email, profile }: DashboardHeaderProps) {
+export default function TopNavbar({ email, profile }: { email?: string, profile: any }) {
   const router = useRouter();
   const supabase = createClient();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -25,23 +20,36 @@ export default function DashboardHeader({ email, profile }: DashboardHeaderProps
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Dashboard</h1>
+    <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 flex justify-between items-center relative">
+        
+        {/* Left: Logo */}
+        <Link href="/dashboard" className="flex items-center hover:opacity-90 transition-opacity relative z-10">
+          <img 
+            src="https://6548935.app.netsuite.com/core/media/media.nl?id=12904734&c=6548935&h=lTRR7c30QxWFNVKbRyFb33OSd6KKQTdFVchouUxSK4Am28ls" 
+            alt="Saint Flooring Logo" 
+            className="w-14 sm:w-16 h-auto object-contain"
+          />
+        </Link>
+
+        {/* Center: Title */}
+        <Link href="/dashboard" className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-base sm:text-lg font-bold tracking-tight text-white hover:opacity-90 transition-opacity whitespace-nowrap">
+          Contractor App
+        </Link>
 
         {/* Profile Menu */}
-        <div className="relative">
+        <div className="relative z-10">
           <button
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="flex items-center gap-3 p-1 pr-3 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 focus:outline-none transition-all duration-200"
+            className="flex items-center gap-2 p-1 pr-3 rounded-full border border-transparent hover:bg-blue-700/50 hover:border-blue-500 focus:outline-none transition-all duration-200"
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 font-bold shadow-sm border border-blue-200">
-              {profile?.first_name?.charAt(0).toUpperCase() || email?.charAt(0).toUpperCase()}
+            <div className="w-8 h-8 text-sm rounded-full bg-white flex items-center justify-center text-blue-700 font-bold shadow-sm border-white">
+              {profile?.first_name?.charAt(0).toUpperCase() || email?.charAt(0).toUpperCase() || '?'}
             </div>
-            <span className="hidden sm:block text-sm font-semibold text-slate-700">
+            <span className="hidden sm:block text-sm font-semibold text-white">
               {profile?.first_name ? `${profile.first_name} ${profile.last_name}` : email}
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>

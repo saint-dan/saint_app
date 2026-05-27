@@ -1,7 +1,6 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import DashboardHeader from './DashboardHeader';
 import AdminView from './AdminView';
 import ContractorView from './ContractorView';
 
@@ -34,11 +33,8 @@ export default async function Dashboard() {
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <DashboardHeader email={user.email} profile={profile} />
-
-      {/* Main Dashboard Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="flex-1 w-full bg-slate-50">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
         {roleName === 'Admin' && <AdminView profile={profile} />}
         
         {roleName === 'Contractor' && <ContractorView profile={profile} />}
