@@ -258,25 +258,27 @@ export default function UsersTable({ users }: UsersTableProps) {
               </div>
 
               {/* Tax & Business Profile */}
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
-                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Business Details</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase">Account Type</p>
-                    <p className="font-medium text-slate-900 mt-0.5">{userDetails.account_type || 'N/A'}</p>
+              {(Array.isArray(userDetails.roles) ? userDetails.roles[0]?.name : userDetails.roles?.name) === 'Contractor' && (
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Business Details</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase">Account Type</p>
+                      <p className="font-medium text-slate-900 mt-0.5">{userDetails.account_type || 'N/A'}</p>
+                    </div>
+                    {userDetails.account_type === 'Limited Company' ? (
+                      <>
+                        <div><p className="text-xs font-semibold text-slate-500 uppercase">Company Name</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.company_name || 'N/A'}</p></div>
+                        <div><p className="text-xs font-semibold text-slate-500 uppercase">Reg Number</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.company_reg_number || 'N/A'}</p></div>
+                      </>
+                    ) : (
+                      <div><p className="text-xs font-semibold text-slate-500 uppercase">National Insurance</p><p className="font-medium text-slate-900 mt-0.5 uppercase">{userDetails.national_insurance || 'N/A'}</p></div>
+                    )}
+                    <div><p className="text-xs font-semibold text-slate-500 uppercase">UTR Number</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.utr_number || 'N/A'}</p></div>
+                    <div><p className="text-xs font-semibold text-slate-500 uppercase">CIS Status</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.cis_status || 'N/A'}</p></div>
                   </div>
-                  {userDetails.account_type === 'Limited Company' ? (
-                    <>
-                      <div><p className="text-xs font-semibold text-slate-500 uppercase">Company Name</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.company_name || 'N/A'}</p></div>
-                      <div><p className="text-xs font-semibold text-slate-500 uppercase">Reg Number</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.company_reg_number || 'N/A'}</p></div>
-                    </>
-                  ) : (
-                    <div><p className="text-xs font-semibold text-slate-500 uppercase">National Insurance</p><p className="font-medium text-slate-900 mt-0.5 uppercase">{userDetails.national_insurance || 'N/A'}</p></div>
-                  )}
-                  <div><p className="text-xs font-semibold text-slate-500 uppercase">UTR Number</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.utr_number || 'N/A'}</p></div>
-                  <div><p className="text-xs font-semibold text-slate-500 uppercase">CIS Status</p><p className="font-medium text-slate-900 mt-0.5">{userDetails.cis_status || 'N/A'}</p></div>
                 </div>
-              </div>
+              )}
 
             </div>
           ) : null}
