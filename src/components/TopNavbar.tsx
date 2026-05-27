@@ -37,15 +37,17 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
           Contractor App
         </Link>
 
-        {/* Profile Menu */}
-        <div className="relative z-10">
-          <button
-            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="flex items-center gap-2 p-1 pr-3 rounded-full border border-transparent hover:bg-blue-700/50 hover:border-blue-500 focus:outline-none transition-all duration-200"
-          >
-            <div className="w-8 h-8 text-sm rounded-full bg-white flex items-center justify-center text-blue-700 font-bold shadow-sm border-white">
-              {profile?.first_name?.charAt(0).toUpperCase() || email?.charAt(0).toUpperCase() || '?'}
-            </div>
+        {/* Right: Profile Menu */}
+        <div className="flex items-center gap-4 sm:gap-6 relative z-10">
+          {/* Profile Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="flex items-center gap-2 p-1 pr-3 rounded-full border border-transparent hover:bg-blue-700/50 hover:border-blue-500 focus:outline-none transition-all duration-200"
+            >
+              <div className="w-8 h-8 text-sm rounded-full bg-white flex items-center justify-center text-blue-700 font-bold shadow-sm border-white">
+                {profile?.first_name?.charAt(0).toUpperCase() || email?.charAt(0).toUpperCase() || '?'}
+              </div>
             <span className="hidden sm:block text-sm font-semibold text-white">
               {profile?.first_name ? `${profile.first_name} ${profile.last_name}` : email}
             </span>
@@ -85,6 +87,21 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
                   Dashboard
                 </button>
 
+                {roleName === 'Admin' && (
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      router.push('/admin/users');
+                    }}
+                    className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-4 h-4 mr-3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                    </svg>
+                    Users
+                  </button>
+                )}
+
                 <button
                   onClick={() => {
                     setIsProfileMenuOpen(false);
@@ -111,6 +128,7 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
               </div>
             </>
           )}
+          </div>
         </div>
       </div>
     </header>
