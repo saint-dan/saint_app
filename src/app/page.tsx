@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 export default function ContractorRegistration() {
   const router = useRouter();
-  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const [step, setStep] = useState(1);
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const [formData, setFormData] = useState({
@@ -461,7 +461,7 @@ export default function ContractorRegistration() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`${(!isLoginMode && step === 2) ? 'w-2/3' : 'w-full'} py-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none`}
+                  className={`${(!isLoginMode && step === 2) ? 'w-2/3' : 'w-full'} py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none`}
                 >
                   {isSubmitting 
                     ? (isLoginMode ? 'Logging in...' : 'Registering...') 

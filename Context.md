@@ -5,9 +5,9 @@
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 
 ## Architecture & Standards
-- **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`. Authenticated pages are wrapped in an `(authenticated)` route group to share the `TopNavbar` and server-side protection.
+- **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
 - **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
-- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `TopNavbar`).
+- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.
 - **Database:** Supabase. The initialized clients for server (`server.ts`) and client (`client.ts`) are located in `src/utils/supabase/`.
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
@@ -30,6 +30,7 @@
 - **Aesthetics:** Premium feel with clean spacing, gradient backgrounds, and a consistent, high-quality color palette.
 - **Typography:** Thoughtful typography for hierarchy and readability.
 - **Components & Styling:** Consistent UI components with depth (subtle shadows, rounded-2xl or rounded-3xl corners).
+- **Primary Actions:** Standardize primary action and submit buttons to use a blue gradient (`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white`).
 - **Interactions:** Smooth micro-interactions, elegant hover states on buttons/inputs, subtle animations, and intuitive feedback.
 - **Experience:** Fully responsive design that ensures an excellent layout and user experience on both mobile and desktop views. Fast performance and optimized loading are essential.
 
