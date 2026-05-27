@@ -300,25 +300,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Account Role</label>
-                  <input
-                    type="text"
-                    value={userRole || 'No role assigned'}
-                    disabled
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
-                    title="Your role cannot be changed here"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Section 2: Contact Details */}
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contact Details</h2>
-              
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 <div className="space-y-2">
                   <label htmlFor="primaryLocationId" className="text-sm font-semibold text-slate-700">Primary Location</label>
                   <select
@@ -337,23 +319,34 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="address" className="text-sm font-semibold text-slate-700">Full UK Address</label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
-                    required
+                  <label className="text-sm font-semibold text-slate-700">Account Role</label>
+                  <input
+                    type="text"
+                    value={userRole || 'No role assigned'}
+                    disabled
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
+                    title="Your role cannot be changed here"
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <label htmlFor="address" className="text-sm font-semibold text-slate-700">Full UK Address</label>
+                <textarea
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
+                  required
+                />
+              </div>
             </div>
 
-            {/* Section 3: Professional & Tax Profile */}
+            {/* Section 2: Contractor Details */}
             <div>
-              <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Professional & Tax Profile</h2>
+              <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contractor Details</h2>
               
               <div className="space-y-6">
                 <div className="space-y-2">
