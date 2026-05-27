@@ -33,7 +33,7 @@ export default function InstallPrompt() {
   return (
     <div className="fixed bottom-6 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-gray-200 z-50 transition-all duration-300">
       <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold text-gray-900">Install Contractor App</h3>
+        <h3 className="font-semibold text-gray-900">Install App</h3>
         <button onClick={() => setShowPrompt(false)} className="text-gray-400 hover:text-gray-600">
           ✕
         </button>
