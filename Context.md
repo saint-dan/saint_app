@@ -5,9 +5,9 @@
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 
 ## Architecture & Standards
-- **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
+- **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`. Authenticated pages are wrapped in an `(authenticated)` route group to share the `TopNavbar` and server-side protection.
 - **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
-- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `DashboardHeader`).
+- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `TopNavbar`).
 - **Authentication:** Cookie-based Authentication using Supabase.
 - **Database:** Supabase. The initialized clients for server (`server.ts`) and client (`client.ts`) are located in `src/utils/supabase/`.
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
