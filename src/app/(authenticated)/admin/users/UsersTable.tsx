@@ -194,7 +194,7 @@ export default function UsersTable({ users }: UsersTableProps) {
         <div className="flex-1 overflow-y-auto">
           {/* Drawer Header */}
           <div className="sticky top-0 z-10 px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md">
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Contractor Profile</h2>
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">User Profile</h2>
             <button onClick={closeDrawer} className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -226,7 +226,6 @@ export default function UsersTable({ users }: UsersTableProps) {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">{userDetails.first_name} {userDetails.last_name}</h3>
-                  <p className="text-sm font-medium text-slate-500">{userDetails.email}</p>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                       {Array.isArray(userDetails.roles) ? userDetails.roles[0]?.name : userDetails.roles?.name || 'Unassigned'}
@@ -240,27 +239,30 @@ export default function UsersTable({ users }: UsersTableProps) {
 
               {/* Contact Info */}
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
-                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Contact & Location</h4>
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase">Phone Number</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase">Primary Location</p>
+                  <p className="font-medium text-slate-900 mt-0.5">
+                    {Array.isArray(userDetails.locations) ? userDetails.locations[0]?.name : userDetails.locations?.name || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase">Email Address</p>
+                  <p className="font-medium text-slate-900 mt-0.5">{userDetails.email || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase">Mobile number</p>
                   <p className="font-medium text-slate-900 mt-0.5">{userDetails.phone || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase">Address</p>
                   <p className="font-medium text-slate-900 mt-0.5 whitespace-pre-line">{userDetails.address || 'N/A'}</p>
                 </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase">Primary Work Location</p>
-                  <p className="font-medium text-slate-900 mt-0.5">
-                    {Array.isArray(userDetails.locations) ? userDetails.locations[0]?.name : userDetails.locations?.name || 'N/A'}
-                  </p>
-                </div>
               </div>
 
               {/* Tax & Business Profile */}
               {(Array.isArray(userDetails.roles) ? userDetails.roles[0]?.name : userDetails.roles?.name) === 'Contractor' && (
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Business Details</h4>
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Contractor Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs font-semibold text-slate-500 uppercase">Account Type</p>
