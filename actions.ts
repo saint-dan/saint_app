@@ -67,7 +67,8 @@ export async function saveInspection(formData: {
       site_id: formData.siteId || null,
       operatives_on_site: formData.operativesOnSite || null,
       supervisor_qualification: formData.supervisorQualification || null,
-      status: formData.status
+      status: formData.status,
+      inspection_date: new Date().toISOString().split('T')[0]
   };
 
   if (currentInspectionId) {
