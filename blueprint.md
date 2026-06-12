@@ -1,7 +1,7 @@
-# Contractor App - AI System Instructions
+# Saint App - AI System Instructions
 
 ## Project Overview
-- **Purpose:** A premium Contractor App for managing contractors. The current phase focuses on a robust contractor registration feature, with additional features (scheduling, invoicing, etc.) to be added later.
+- **Purpose:** A premium, company-wide application designed for use by different stakeholders and roles (currently: Admin, Subcontractor, Contracts Manager). The app will provide different features and functionality depending on the specific user's role. The current phase focuses on a robust subcontractor registration feature, with additional role-based features (scheduling, invoicing, etc.) to be added later.
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
@@ -19,7 +19,7 @@ src/
 ## Strict Coding Conventions & Standards
 - **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
 - **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
-- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `DashboardHeader`).
+- **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `SubcontractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.
 - **Database:** Supabase. The initialized clients for server (`server.ts`) and client (`client.ts`) are located in `src/utils/supabase/`.
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
@@ -62,7 +62,7 @@ Currently planned tables (to be expanded):
 
 2. `roles`:
    - `id` (uuid, primary key)
-   - `name` (text, unique)
+   - `name` (text, unique) - Expected values: 'Admin', 'Subcontractor', 'Contracts Manager'
    - `description` (text)
    - `created_at` (timestamp)
 
