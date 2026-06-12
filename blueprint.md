@@ -6,9 +6,9 @@
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
 ## Current Status & Active Milestones
-- **Current Phase:** Initial setup and Subcontractor Registration flow.
-- **Recently Completed:** Project initialization, basic Supabase setup, blueprint creation.
-- **Next Up:** (Update this regularly) Implement UI for the Subcontractor registration form, wire up to Supabase auth/db.
+- **Current Phase:** Dashboard Development & Admin Workflows.
+- **Recently Completed:** Project initialization, Supabase setup, Subcontractor Registration & Login flow (UI and DB integration).
+- **Next Up:** (Update this regularly) Flesh out the Admin and Contractor dashboard views (e.g., contractor verification workflows, active jobs, document uploads).
 
 ## Directory Map
 ```text

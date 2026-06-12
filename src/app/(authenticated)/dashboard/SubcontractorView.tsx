@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserProfile } from './page';
 
-export default function ContractorView({ profile }: { profile: UserProfile | null }) {
+export default function SubcontractorView({ profile }: { profile: UserProfile | null }) {
   const status = profile?.status || 'Pending';
   const statusStyle = status === 'Active' 
     ? 'bg-green-100 text-green-700 border-green-200' 
@@ -12,10 +12,10 @@ export default function ContractorView({ profile }: { profile: UserProfile | nul
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back, {profile?.first_name || 'Contractor'}!
+            Welcome back, {profile?.first_name || 'Subcontractor'}!
           </h2>
           <p className="text-slate-500 font-medium mt-2">
-            This is your central hub for managing your contractor profile and viewing upcoming jobs.
+            This is your central hub for managing your subcontractor profile and viewing upcoming jobs.
           </p>
         </div>
         <div className={`px-4 py-2 rounded-xl font-bold text-sm border shadow-sm flex items-center gap-2 ${statusStyle}`}>

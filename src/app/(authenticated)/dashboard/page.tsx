@@ -2,7 +2,7 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import AdminView from './AdminView';
-import ContractorView from './ContractorView';
+import SubcontractorView from './SubcontractorView';
 
 export interface UserProfile {
   id: string;
@@ -37,10 +37,10 @@ export default async function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
         {roleName === 'Admin' && <AdminView profile={profile} />}
         
-        {roleName === 'Contractor' && <ContractorView profile={profile} />}
+        {roleName === 'Subcontractor' && <SubcontractorView profile={profile} />}
         
         {/* Fallback for any newly added roles down the line */}
-        {roleName !== 'Admin' && roleName !== 'Contractor' && (
+        {roleName !== 'Admin' && roleName !== 'Subcontractor' && (
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 text-center">
             <h2 className="text-2xl font-bold text-slate-800">No dashboard configured</h2>
             <p className="text-slate-500 mt-2">There is currently no dashboard view configured for the role: <strong>{roleName || 'None'}</strong>.</p>

@@ -32,11 +32,6 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
           />
         </Link>
 
-        {/* Center: Title */}
-        <Link href="/dashboard" className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-base sm:text-lg font-bold tracking-tight text-white hover:opacity-90 transition-opacity whitespace-nowrap">
-          Contractor App
-        </Link>
-
         {/* Right: Profile Menu */}
         <div className="flex items-center gap-4 sm:gap-6 relative z-10">
           {/* Profile Menu */}

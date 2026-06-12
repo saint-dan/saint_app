@@ -266,10 +266,10 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Section 2: Contractor Details */}
-            {userRole === 'Contractor' && (
+            {/* Section 2: Subcontractor Details */}
+            {userRole === 'Subcontractor' && (
               <div>
-                <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contractor Details</h2>
+                <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Subcontractor Details</h2>
                 
                 <div className="space-y-6">
                   <div className="space-y-2">
