@@ -3,14 +3,27 @@
 ## Project Overview
 - **Purpose:** A premium Contractor App for managing contractors. The current phase focuses on a robust contractor registration feature, with additional features (scheduling, invoicing, etc.) to be added later.
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
+- **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
-## Architecture & Standards
+## Directory Map
+```text
+src/
+├── app/                  # Next.js App Router (pages, layouts, API routes)
+├── components/           # Reusable UI and functional components
+├── lib/                  # Shared libraries, configurations, and helpers
+├── types/                # Global TypeScript definitions and database types
+└── utils/
+    └── supabase/         # Supabase clients (server.ts, client.ts, middleware.ts)
+```
+
+## Strict Coding Conventions & Standards
 - **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
 - **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
 - **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `ContractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.
 - **Database:** Supabase. The initialized clients for server (`server.ts`) and client (`client.ts`) are located in `src/utils/supabase/`.
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
+- **AI Instructions:** Write DRY (Don't Repeat Yourself) code, strictly type all arguments and return values, use modern ES6+ syntax, and do not make assumptions about missing database tables—ask first.
 
 ## Security
 - **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, or Database Passwords in code or workspace files.
@@ -34,7 +47,7 @@
 - **Interactions:** Smooth micro-interactions, elegant hover states on buttons/inputs, subtle animations, and intuitive feedback.
 - **Experience:** Fully responsive design that ensures an excellent layout and user experience on both mobile and desktop views. Fast performance and optimized loading are essential.
 
-## Database Schema Reference
+## Database Ground Truth & Schema Reference
 Currently planned tables (to be expanded):
 1. `users`:
    - `id` (uuid, primary key)
