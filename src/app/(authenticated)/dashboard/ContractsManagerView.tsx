@@ -1,8 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
 import { UserProfile } from './page';
+import { createClient } from '@/utils/supabase/server';
 
-export default function ContractsManagerView({ profile }: { profile: UserProfile | null }) {
+export default async function ContractsManagerView({ profile }: { profile: UserProfile | null }) {
+  const supabase = await createClient();
+  
+  const { count: draftCount } = await supabase
+    .from('site_inspections')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'Draft');
+    
+  const { count: completedCount } = await supabase
+    .from('site_inspections')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'Completed');
+
   return (
     <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -33,21 +46,26 @@ export default function ContractsManagerView({ profile }: { profile: UserProfile
       </div>
       
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl border border-blue-100 hover:shadow-md transition-shadow">
-          <h3 className="font-bold text-blue-900 mb-2">Active Sites</h3>
-          <p className="text-blue-700 text-4xl font-extrabold tracking-tight">0</p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link href="/dashboard/inspections?status=Draft" className="block p-6 bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-100 hover:shadow-md hover:border-amber-200 transition-all cursor-pointer group">
+          <div className="flex justify-between items-start">
+            <h3 className="font-bold text-amber-900 mb-2 group-hover:text-amber-700 transition-colors">Draft Inspections</h3>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-amber-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+          <p className="text-amber-700 text-4xl font-extrabold tracking-tight">{draftCount || 0}</p>
+        </Link>
         
-        <div className="p-6 bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-100 hover:shadow-md transition-shadow">
-          <h3 className="font-bold text-amber-900 mb-2">Pending Approvals</h3>
-          <p className="text-amber-700 text-4xl font-extrabold tracking-tight">0</p>
-        </div>
-
-        <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl border border-slate-200 hover:shadow-md transition-shadow">
-          <h3 className="font-bold text-slate-800 mb-2">Active Subcontractors</h3>
-          <p className="text-slate-700 text-4xl font-extrabold tracking-tight">0</p>
-        </div>
+        <Link href="/dashboard/inspections?status=Completed" className="block p-6 bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl border border-green-100 hover:shadow-md hover:border-green-200 transition-all cursor-pointer group">
+          <div className="flex justify-between items-start">
+            <h3 className="font-bold text-green-900 mb-2 group-hover:text-green-700 transition-colors">Completed Inspections</h3>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-green-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+          <p className="text-green-700 text-4xl font-extrabold tracking-tight">{completedCount || 0}</p>
+        </Link>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { saveInspection, createBuilder, createSite } from '../../../../actions';
 
 interface NewInspectionFormProps {
@@ -10,6 +11,11 @@ interface NewInspectionFormProps {
   sites: any[];
   sections: any[];
   questions: any[];
+  initialInspectionId?: string;
+  initialHeaderData?: any;
+  initialResponses?: any;
+  isReadOnly?: boolean;
+  initialDate?: string;
 }
 
 export default function NewInspectionForm({
@@ -17,14 +23,19 @@ export default function NewInspectionForm({
   builders,
   sites,
   sections,
-  questions
+  questions,
+  initialInspectionId,
+  initialHeaderData,
+  initialResponses,
+  isReadOnly = false,
+  initialDate
 }: NewInspectionFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [currentPage, setCurrentPage] = useState(0);
-  const [inspectionId, setInspectionId] = useState<string | null>(null);
+  const [inspectionId, setInspectionId] = useState<string | null>(initialInspectionId || null);
   const formRef = useRef<HTMLFormElement>(null);
   const totalPages = sections.length + 1; // Header + 1 page per section
 
@@ -41,23 +52,23 @@ export default function NewInspectionForm({
   const [isSavingSite, setIsSavingSite] = useState(false);
 
   // Formatter for display
-  const today = new Date().toLocaleDateString('en-GB', {
+  const displayDate = new Date(initialDate || new Date()).toLocaleDateString('en-GB', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
   // State: Form Header Data
   const [headerData, setHeaderData] = useState({
-    builderId: '',
-    siteId: '',
-    operativesOnSite: '',
-    supervisorQualification: profile?.qualification || ''
+    builderId: initialHeaderData?.builderId || '',
+    siteId: initialHeaderData?.siteId || '',
+    operativesOnSite: initialHeaderData?.operativesOnSite || '',
+    supervisorQualification: initialHeaderData?.supervisorQualification || profile?.qualification || ''
   });
 
   // State: Question Responses
   const [responses, setResponses] = useState<Record<string, { isCompliant: boolean | null, comments: string }>>(() => {
     const initial: Record<string, { isCompliant: boolean | null, comments: string }> = {};
     questions.forEach(q => {
-      initial[q.id] = { isCompliant: null, comments: '' };
+      initial[q.id] = initialResponses?.[q.id] || { isCompliant: null, comments: '' };
     });
     return initial;
   });
@@ -201,19 +212,29 @@ export default function NewInspectionForm({
       {/* Page Title & Cancel Button */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">New Site Inspection</h1>
-          <p className="text-slate-500 mt-2">Complete the site inspection checklist below.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            {isReadOnly ? 'View Site Inspection' : initialInspectionId ? 'Resume Site Inspection' : 'New Site Inspection'}
+          </h1>
+          <p className="text-slate-500 mt-2">
+            {isReadOnly ? 'Review the completed inspection details below.' : 'Complete the site inspection checklist below.'}
+          </p>
         </div>
-        <button 
-          type="button"
-          onClick={async () => {
-            if (headerData.builderId) await autoSaveDraft();
-            router.push('/dashboard');
-          }}
-          className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2"
-        >
-          Save Draft & Exit
-        </button>
+        {!isReadOnly ? (
+          <button 
+            type="button"
+            onClick={async () => {
+              if (headerData.builderId) await autoSaveDraft();
+              router.push('/dashboard/inspections');
+            }}
+            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2"
+          >
+            Save Draft & Exit
+          </button>
+        ) : (
+          <Link href="/dashboard/inspections" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
+            Close
+          </Link>
+        )}
       </div>
 
       {/* Progress Bar */}
@@ -227,6 +248,7 @@ export default function NewInspectionForm({
       </div>
 
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
+        <fieldset disabled={isReadOnly} className="space-y-8 min-w-0 m-0 p-0 border-none group">
         {/* 1. Header Information Card */}
         {currentPage === 0 && (
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -252,7 +274,7 @@ export default function NewInspectionForm({
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label htmlFor="builderId" className="text-sm font-semibold text-slate-700">Builder</label>
-                {!isAddingBuilder && (
+                {!isReadOnly && !isAddingBuilder && (
                   <button type="button" onClick={() => setIsAddingBuilder(true)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
                     + Add New
                   </button>
@@ -296,7 +318,7 @@ export default function NewInspectionForm({
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label htmlFor="siteId" className="text-sm font-semibold text-slate-700">Site</label>
-                {!isAddingSite && headerData.builderId && (
+                {!isReadOnly && !isAddingSite && headerData.builderId && (
                   <button type="button" onClick={() => setIsAddingSite(true)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
                     + Add New
                   </button>
@@ -356,7 +378,7 @@ export default function NewInspectionForm({
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Date</label>
               <div className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 shadow-sm cursor-not-allowed">
-                {today}
+                {displayDate}
               </div>
             </div>
           </div>
@@ -393,21 +415,21 @@ export default function NewInspectionForm({
                             <button
                               type="button"
                               onClick={() => handleResponseChange(q.id, 'isCompliant', true)}
-                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${resp.isCompliant === true ? 'bg-white shadow-sm text-green-600' : 'text-slate-500 hover:text-slate-700'}`}
+                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${resp.isCompliant === true ? 'bg-white shadow-sm text-green-600' : 'text-slate-500 hover:text-slate-700'} ${isReadOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
                               Yes
                             </button>
                             <button
                               type="button"
                               onClick={() => handleResponseChange(q.id, 'isCompliant', false)}
-                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${resp.isCompliant === false ? 'bg-white shadow-sm text-red-600' : 'text-slate-500 hover:text-slate-700'}`}
+                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${resp.isCompliant === false ? 'bg-white shadow-sm text-red-600' : 'text-slate-500 hover:text-slate-700'} ${isReadOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
                               No
                             </button>
                             <button
                               type="button"
                               onClick={() => handleResponseChange(q.id, 'isCompliant', null)}
-                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${resp.isCompliant === null ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${resp.isCompliant === null ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'} ${isReadOnly ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
                               N/A
                             </button>
@@ -432,6 +454,7 @@ export default function NewInspectionForm({
               </div>
             );
           })}
+        </fieldset>
 
         {/* 3. Submit Area */}
         <div className="flex justify-between items-center gap-4 mt-2">
@@ -468,7 +491,7 @@ export default function NewInspectionForm({
                   </>
                 ) : 'Next'}
               </button>
-            ) : (
+            ) : !isReadOnly && (
               <button
                 type="submit"
                 disabled={isSubmitting}
