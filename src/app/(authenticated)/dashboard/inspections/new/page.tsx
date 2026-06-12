@@ -1,3 +1,8 @@
+/**
+ * Route: /dashboard/inspections/new
+ * Description: Server Component for the New Site Inspection form. 
+ * Fetches required data (builders, sites, sections, questions) and passes it to the client form.
+ */
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';

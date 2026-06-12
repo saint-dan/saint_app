@@ -1,3 +1,8 @@
+/**
+ * Route: /dashboard
+ * Description: Main Dashboard Hub. Routes authenticated users to their specific 
+ * role-based dashboard view (Admin, Subcontractor, Contracts Manager).
+ */
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';

@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * Route: / (Root)
+ * Description: Public landing page serving as the combined Login and Registration 
+ * portal for Contractors/Subcontractors.
+ */
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';

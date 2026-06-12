@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * Route: /profile
+ * Description: Client Component for the user profile page. Allows users to view
+ * and edit their basic information and role-specific details.
+ */
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';

@@ -1,14 +1,14 @@
 # Saint App - AI System Instructions
 
 ## Project Overview
-- **Purpose:** A premium, company-wide application designed for use by different stakeholders and roles (currently: Admin, Subcontractor, Contracts Manager). The app will provide different features and functionality depending on the specific user's role. The current phase focuses on a robust subcontractor registration feature, with additional role-based features (scheduling, invoicing, etc.) to be added later.
+- **Purpose:** A premium, company-wide application designed for use by different stakeholders and roles (currently: Admin, Subcontractor, Contracts Manager). The app provides tailored dashboards and functionality depending on the user's role.
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
 ## Current Status & Active Milestones
-- **Current Phase:** Dashboard Development & Admin Workflows.
-- **Recently Completed:** Project initialization, Supabase setup, Subcontractor Registration & Login flow (UI and DB integration).
-- **Next Up:** (Update this regularly) Flesh out the Admin and Contractor dashboard views (e.g., contractor verification workflows, active jobs, document uploads).
+- **Current Phase:** Contracts Manager Workflows & Data Visualization.
+- **Recently Completed:** Subcontractor Registration, Role-based Dashboard Routing, Contracts Manager Portal, Dynamic Site Inspection Checklist (UI, Server Actions, DB Tables).
+- **Next Up:** (Update this regularly) Dashboard metrics (actual data fetching), view past completed inspections, photo uploads for inspections, and Admin verification workflows.
 
 ## Directory Map
 ```text
@@ -30,6 +30,7 @@
 
 ## Strict Coding Conventions & Standards
 - **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
+- **File-Level Documentation:** Add a standardized file-level comment block (JSDoc style) at the top of every `page.tsx` file detailing the `Route` and `Description`. This prevents AI context confusion and ensures code is placed in the correct file.
 - **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
 - **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `SubcontractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.
