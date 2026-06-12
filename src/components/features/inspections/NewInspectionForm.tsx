@@ -37,6 +37,7 @@ export default function NewInspectionForm({
 }: NewInspectionFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<'next' | 'back' | 'submit' | 'draft' | 'add' | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const [currentPage, setCurrentPage] = useState(0);
@@ -182,8 +183,9 @@ export default function NewInspectionForm({
     }
   };
 
-  const autoSaveDraft = async (overrideSignatures?: any[]) => {
+  const autoSaveDraft = async (overrideSignatures?: any[], actionName: 'next' | 'back' | 'draft' | 'add' = 'draft') => {
     setIsSubmitting(true);
+    setLoadingAction(actionName);
     setError(null);
     try {
       const currentSignatures = overrideSignatures || signatures;
@@ -210,17 +212,18 @@ export default function NewInspectionForm({
       return false;
     } finally {
       setIsSubmitting(false);
+      setLoadingAction(null);
     }
   };
 
   const handleNext = async () => {
     if (formRef.current && !formRef.current.reportValidity()) return;
-    const saved = await autoSaveDraft();
+    const saved = await autoSaveDraft(undefined, 'next');
     if (saved) setCurrentPage(prev => prev + 1);
   };
 
   const handleBack = async () => {
-    await autoSaveDraft();
+    await autoSaveDraft(undefined, 'back');
     setCurrentPage(prev => prev - 1);
   };
 
@@ -236,7 +239,7 @@ export default function NewInspectionForm({
 
     const newSignatures = [...signatures, { name: '', positionId: '', signatureData: null }];
     setSignatures(newSignatures);
-    const saved = await autoSaveDraft(newSignatures);
+    const saved = await autoSaveDraft(newSignatures, 'add');
     if (saved) setCurrentPage(prev => prev + 1);
   };
 
@@ -255,6 +258,7 @@ export default function NewInspectionForm({
     }
 
     setIsSubmitting(true);
+    setLoadingAction('submit');
     setError(null);
 
     try {
@@ -275,10 +279,12 @@ export default function NewInspectionForm({
       } else {
         setError(result.error || 'Failed to submit inspection');
         setIsSubmitting(false);
+        setLoadingAction(null);
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setIsSubmitting(false);
+      setLoadingAction(null);
     }
   };
 
@@ -300,13 +306,22 @@ export default function NewInspectionForm({
         {!isReadOnly ? (
           <button 
             type="button"
+            disabled={isSubmitting}
             onClick={async () => {
-              if (headerData.builderId) await autoSaveDraft();
+              if (headerData.builderId) await autoSaveDraft(undefined, 'draft');
               router.push('/dashboard/inspections');
             }}
-            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2"
+            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2 disabled:opacity-50"
           >
-            Save Draft & Exit
+            {loadingAction === 'draft' ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </>
+            ) : 'Save Draft & Exit'}
           </button>
         ) : (
           <Link href="/dashboard/inspections" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
@@ -644,9 +659,17 @@ export default function NewInspectionForm({
                 type="button"
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Back
+                {loadingAction === 'back' ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-1 h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : 'Back'}
               </button>
             )}
           </div>
@@ -661,7 +684,7 @@ export default function NewInspectionForm({
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-md transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isSubmitting ? (
+                {loadingAction === 'next' ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -679,14 +702,22 @@ export default function NewInspectionForm({
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                + Add Another
+                {loadingAction === 'add' ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-1 h-5 w-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : '+ Add Another'}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl shadow-md transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isSubmitting ? (
+                {loadingAction === 'submit' ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -694,7 +725,7 @@ export default function NewInspectionForm({
                     </svg>
                     Submitting...
                   </>
-                ) : 'Submit Inspection'}
+                ) : 'Submit'}
               </button>
               </>
             ))}

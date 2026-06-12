@@ -128,6 +128,7 @@ export async function saveInspection(formData: {
 
   // 4. Purge cache for the dashboard to reflect new data
   revalidatePath('/dashboard');
+  revalidatePath('/dashboard/inspections');
   return { success: true, inspectionId: currentInspectionId };
 }
 

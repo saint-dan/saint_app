@@ -7,8 +7,8 @@
 
 ## Current Status & Active Milestones
 - **Current Phase:** Photo Uploads & Admin Workflows.
-- **Recently Completed:** Dynamic Site Inspection Checklist (with Draft Auto-Save), Real Dashboard Metrics, View/Resume Inspections List, Dynamic Route Consolidation (`[id]`), Custom UI Modals, 1200px Layout Standardization.
-- **Next Up:** (Update this regularly) Photo uploads for inspections to Supabase Storage, and Admin verification workflows for pending Subcontractors.
+- **Recently Completed:** Dynamic Site Inspection Checklist (with Draft Auto-Save), Digital Signature Capture (`react-signature-canvas`) with dynamic signees, Real Dashboard Metrics, View/Resume Inspections List, Custom UI Modals, 1200px Layout Standardization, Profile enhancements.
+- **Next Up:** (Update this regularly) Photo uploads for individual checklist questions, and Admin workflow to view and verify pending Subcontractors.
 
 ## Directory Map
 ```text
