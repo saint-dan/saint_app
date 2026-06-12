@@ -12,15 +12,20 @@
 
 ## Directory Map
 ```text
-src/
-├── app/                  # Next.js App Router (pages, layouts, API routes)
-├── components/           # Reusable UI and functional components
-│   ├── ui/               # Generic/Atomic UI components (buttons, inputs)
-│   └── features/         # Feature-specific components (e.g., SubcontractorForm)
-├── lib/                  # Shared libraries, configurations, and helpers
-├── types/                # Global TypeScript definitions (includes auto-generated database.types.ts)
-└── utils/
-    └── supabase/         # Supabase clients (server.ts, client.ts, middleware.ts)
+/
+├── actions.ts            # Server actions (e.g., auth functions: login, signup, logout)
+├── blueprint.md          # AI System Instructions & context
+├── package.json          # Project metadata, dependencies, and script shortcuts
+└── src/
+    ├── app/              # Next.js App Router (pages, layouts, API routes)
+    ├── components/       # Reusable UI and functional components
+    │   ├── features/     # Feature-specific components (e.g., SubcontractorForm)
+    │   └── ui/           # Generic/Atomic UI components (buttons, inputs)
+    ├── lib/              # Shared libraries, configurations, and helpers
+    ├── types/            # Global TypeScript definitions
+    │   └── database.types.ts # Auto-generated Supabase schema ground truth
+    └── utils/
+        └── supabase/     # Supabase clients (server.ts, client.ts, middleware.ts)
 ```
 
 ## Strict Coding Conventions & Standards
