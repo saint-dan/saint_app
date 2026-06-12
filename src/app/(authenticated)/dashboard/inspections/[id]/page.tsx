@@ -1,7 +1,7 @@
 /**
  * Route: /dashboard/inspections/[id]
- * Description: Server Component to view or resume an existing site inspection.
- * Fetches the specific inspection and its responses to pre-populate the form.
+ * Description: Server Component to create, view, or resume a site inspection.
+ * Dynamically handles 'new' vs existing IDs.
  */
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
@@ -74,7 +74,7 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
   const { data: questions } = await supabase.from('inspection_questions').select('*').eq('is_active', true).order('display_order');
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <NewInspectionForm
         profile={profile}
         builders={builders || []}

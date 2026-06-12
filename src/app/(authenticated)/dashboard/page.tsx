@@ -35,7 +35,7 @@ export default async function DashboardPage() {
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {roleName === 'Admin' && <AdminView profile={profile} />}
       {roleName === 'Subcontractor' && <SubcontractorView profile={profile} />}
       {roleName === 'Contracts Manager' && <ContractsManagerView profile={profile} />}

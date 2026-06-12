@@ -81,10 +81,12 @@ export default async function InspectionsPage({
   }
 
   return (
-    <InspectionsList 
-      initialInspections={filteredInspections} 
-      currentStatus={status} 
-      currentQuery={query}
-    />
+    <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <InspectionsList 
+        initialInspections={filteredInspections} 
+        currentStatus={status} 
+        currentQuery={query}
+      />
+    </div>
   );
 }

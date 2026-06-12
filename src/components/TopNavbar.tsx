@@ -21,7 +21,7 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
 
   return (
     <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 flex justify-between items-center relative">
+      <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-1 flex justify-between items-center relative">
         
         {/* Left: Logo */}
         <Link href="/dashboard" className="flex items-center hover:opacity-90 transition-opacity relative z-10">
