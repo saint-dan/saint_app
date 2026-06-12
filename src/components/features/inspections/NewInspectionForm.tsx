@@ -500,12 +500,17 @@ export default function NewInspectionForm({
                     // Failsafe in case a new question is added during render
                     if (!resp) return null;
                     
+                    const responseTypeCode = q.response_types?.code || 'YES_NO_NA_COMMENTS';
+                    const showToggle = responseTypeCode === 'YES_NO_NA_COMMENTS' || responseTypeCode === 'YES_NO_NA';
+                    const showComments = responseTypeCode === 'YES_NO_NA_COMMENTS' || responseTypeCode === 'FREEFORM';
+                    
                     return (
                       <div key={q.id} className="p-6 sm:px-8 flex flex-col gap-4 hover:bg-slate-50/50 transition-colors">
                         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                           <p className="text-slate-800 font-medium text-sm sm:text-base flex-1">{q.question_text}</p>
                           
                           {/* Yes / No / N-A Toggle */}
+                          {showToggle && (
                           <div className="flex bg-slate-100 p-1 rounded-xl w-fit shrink-0">
                             <button
                               type="button"
@@ -529,19 +534,22 @@ export default function NewInspectionForm({
                               N/A
                             </button>
                           </div>
+                          )}
                         </div>
 
                         {/* Comments Input */}
+                        {showComments && (
                         <div>
                           <input
                             type="text"
                             value={resp.comments}
                             onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
-                            placeholder="Add a comment... (Required if 'No')"
-                            className={`w-full px-4 py-2.5 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm ${resp.isCompliant === false && !resp.comments ? 'border-red-300 placeholder:text-red-300' : 'border-slate-200'}`}
-                            required={resp.isCompliant === false}
+                            placeholder={responseTypeCode === 'FREEFORM' ? "Enter your response..." : "Add a comment... (Required if 'No')"}
+                            className={`w-full px-4 py-2.5 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm ${resp.isCompliant === false && !resp.comments && responseTypeCode === 'YES_NO_NA_COMMENTS' ? 'border-red-300 placeholder:text-red-300' : 'border-slate-200'}`}
+                            required={responseTypeCode === 'YES_NO_NA_COMMENTS' && resp.isCompliant === false}
                           />
                         </div>
+                        )}
                       </div>
                     );
                   })}

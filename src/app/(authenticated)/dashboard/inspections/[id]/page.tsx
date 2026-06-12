@@ -84,7 +84,7 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
   const { data: builders } = await supabase.from('builders').select('id, name').eq('is_active', true).order('name');
   const { data: sites } = await supabase.from('sites').select('id, name, builder_id').eq('is_active', true).order('name');
   const { data: sections } = await supabase.from('inspection_sections').select('*').eq('is_active', true).order('display_order');
-  const { data: questions } = await supabase.from('inspection_questions').select('*').eq('is_active', true).order('display_order');
+  const { data: questions } = await supabase.from('inspection_questions').select('*, response_types(code)').eq('is_active', true).order('display_order');
   const { data: positions } = await supabase.from('positions').select('id, name').eq('is_active', true).order('name');
 
   return (

@@ -25,10 +25,6 @@ export default async function AdminView({ profile }: { profile: UserProfile | nu
             Manage contractor registrations, verify documents, and oversee platform activity.
           </p>
         </div>
-        <div className="px-4 py-2 rounded-xl font-bold text-sm border shadow-sm flex items-center gap-2 bg-indigo-50 text-indigo-700 border-indigo-100">
-          <div className="w-2 h-2 rounded-full bg-indigo-500" />
-          System Admin
-        </div>
       </div>
       
       {/* Admin Metric Cards */}

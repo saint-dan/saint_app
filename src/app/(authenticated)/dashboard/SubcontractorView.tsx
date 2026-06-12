@@ -3,9 +3,6 @@ import { UserProfile } from './page';
 
 export default function SubcontractorView({ profile }: { profile: UserProfile | null }) {
   const status = profile?.status || 'Pending';
-  const statusStyle = status === 'Active' 
-    ? 'bg-green-100 text-green-700 border-green-200' 
-    : 'bg-amber-100 text-amber-700 border-amber-200';
 
   return (
     <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
@@ -17,10 +14,6 @@ export default function SubcontractorView({ profile }: { profile: UserProfile | 
           <p className="text-slate-500 font-medium mt-2">
             This is your central hub for managing your subcontractor profile and viewing upcoming jobs.
           </p>
-        </div>
-        <div className={`px-4 py-2 rounded-xl font-bold text-sm border shadow-sm flex items-center gap-2 ${statusStyle}`}>
-          <div className={`w-2 h-2 rounded-full ${status === 'Active' ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
-          {status} Profile
         </div>
       </div>
       

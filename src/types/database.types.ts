@@ -42,6 +42,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           question_text: string
+          response_type_id: string | null
           section_id: string | null
         }
         Insert: {
@@ -50,6 +51,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           question_text: string
+          response_type_id?: string | null
           section_id?: string | null
         }
         Update: {
@@ -58,9 +60,17 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           question_text?: string
+          response_type_id?: string | null
           section_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inspection_questions_response_type_id_fkey"
+            columns: ["response_type_id"]
+            isOneToOne: false
+            referencedRelation: "response_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inspection_questions_section_id_fkey"
             columns: ["section_id"]
@@ -216,6 +226,30 @@ export type Database = {
           name: string
         }
         Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      response_types: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          code?: string
           created_at?: string | null
           id?: string
           is_active?: boolean | null
