@@ -10,8 +10,10 @@ import NewInspectionForm from '@/components/features/inspections/NewInspectionFo
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditInspectionPage(props: { params: Promise<{ id: string }> }) {
+export default async function InspectionFormPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
+  const isNew = params.id === 'new';
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -19,41 +21,52 @@ export default async function EditInspectionPage(props: { params: Promise<{ id: 
     redirect('/');
   }
 
-  // 1. Fetch the specific inspection
-  const { data: inspection } = await supabase
-    .from('site_inspections')
-    .select('*')
-    .eq('id', params.id)
-    .single();
-
-  if (!inspection) {
-    redirect('/dashboard/inspections');
-  }
-
-  // 2. Fetch responses for this inspection
-  const { data: responseRecords } = await supabase
-    .from('inspection_responses')
-    .select('*')
-    .eq('inspection_id', params.id);
-
+  let inspection = null;
   const initialResponses: Record<string, any> = {};
-  responseRecords?.forEach(r => {
-    if (r.question_id) {
-      initialResponses[r.question_id] = {
-        isCompliant: r.is_compliant,
-        comments: r.comments || ''
-      };
-    }
-  });
-
-  const initialHeaderData = {
-    builderId: inspection.builder_id || '',
-    siteId: inspection.site_id || '',
-    operativesOnSite: inspection.operatives_on_site || '',
-    supervisorQualification: inspection.supervisor_qualification || ''
+  let initialHeaderData = {
+    builderId: '',
+    siteId: '',
+    operativesOnSite: '',
+    supervisorQualification: ''
   };
 
-  // 3. Fetch reference data (same as new form)
+  if (!isNew) {
+    // 1. Fetch the specific inspection
+    const { data } = await supabase
+      .from('site_inspections')
+      .select('*')
+      .eq('id', params.id)
+      .single();
+
+    if (!data) {
+      redirect('/dashboard/inspections');
+    }
+    inspection = data;
+
+    // 2. Fetch responses for this inspection
+    const { data: responseRecords } = await supabase
+      .from('inspection_responses')
+      .select('*')
+      .eq('inspection_id', params.id);
+
+    responseRecords?.forEach(r => {
+      if (r.question_id) {
+        initialResponses[r.question_id] = {
+          isCompliant: r.is_compliant,
+          comments: r.comments || ''
+        };
+      }
+    });
+
+    initialHeaderData = {
+      builderId: inspection.builder_id || '',
+      siteId: inspection.site_id || '',
+      operativesOnSite: inspection.operatives_on_site || '',
+      supervisorQualification: inspection.supervisor_qualification || ''
+    };
+  }
+
+  // 3. Fetch reference data (used for both New and Edit modes)
   const { data: profile } = await supabase.from('users').select('first_name, last_name, job_title, qualification').eq('id', user.id).single();
   const { data: builders } = await supabase.from('builders').select('id, name').eq('is_active', true).order('name');
   const { data: sites } = await supabase.from('sites').select('id, name, builder_id').eq('is_active', true).order('name');
@@ -69,12 +82,12 @@ export default async function EditInspectionPage(props: { params: Promise<{ id: 
         sections={sections || []}
         questions={questions || []}
         
-        // Pre-fill the form props
-        initialInspectionId={inspection.id}
+        // Pre-fill the form props if editing/viewing
+        initialInspectionId={inspection?.id}
         initialHeaderData={initialHeaderData}
         initialResponses={initialResponses}
-        initialDate={inspection.inspection_date}
-        isReadOnly={inspection.status === 'Completed'}
+        initialDate={inspection?.inspection_date}
+        isReadOnly={inspection?.status === 'Completed'}
       />
     </div>
   );

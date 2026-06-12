@@ -9,12 +9,14 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
   const { count: draftCount } = await supabase
     .from('site_inspections')
     .select('*', { count: 'exact', head: true })
-    .eq('status', 'Draft');
+    .eq('status', 'Draft')
+    .eq('inspector_id', profile?.id || '');
     
   const { count: completedCount } = await supabase
     .from('site_inspections')
     .select('*', { count: 'exact', head: true })
-    .eq('status', 'Completed');
+    .eq('status', 'Completed')
+    .eq('inspector_id', profile?.id || '');
 
   return (
     <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">

@@ -156,6 +156,28 @@ export async function createSite(name: string, builderId: string) {
   return { success: true, site: data };
 }
 
+export async function deleteInspection(id: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  const { error } = await supabase
+    .from('site_inspections')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: 'Failed to delete inspection: ' + error.message };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/inspections');
+  return { success: true };
+}
+
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();

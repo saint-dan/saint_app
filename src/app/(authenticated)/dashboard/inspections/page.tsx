@@ -10,10 +10,10 @@ import InspectionsList from '@/components/features/inspections/InspectionsList';
 
 export const dynamic = 'force-dynamic';
 
-type SearchParams = { status?: string; query?: string };
-
-export default async function InspectionsPage(props: {
-  searchParams: Promise<SearchParams> | SearchParams;
+export default async function InspectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -22,13 +22,23 @@ export default async function InspectionsPage(props: {
     redirect('/');
   }
 
-  const searchParams = await props.searchParams;
+  const resolvedParams = await searchParams;
   // Default to Draft so clicking the generic link or landing here opens Drafts first
-  const status = searchParams?.status || 'Draft';
-  const query = searchParams?.query || '';
+  const status = (resolvedParams?.status as string) || 'Draft';
+  const query = (resolvedParams?.query as string) || '';
+
+  // Fetch user role to determine data access
+  const { data: profile } = await supabase
+    .from('users')
+    .select('roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
   // Fetch inspections based on status with related table data
-  const { data: inspections } = await supabase
+  const baseQuery = supabase
     .from('site_inspections')
     .select(`
       id,
@@ -38,8 +48,12 @@ export default async function InspectionsPage(props: {
       sites (name),
       users (first_name, last_name)
     `)
-    .eq('status', status)
-    .order('inspection_date', { ascending: false });
+    .eq('status', status);
+
+  const { data: inspections } = await (roleName === 'Contracts Manager'
+    ? baseQuery.eq('inspector_id', user.id)
+    : baseQuery
+  ).order('inspection_date', { ascending: false });
 
   // In-memory filter for the search query to handle relational columns easily
   let filteredInspections = inspections || [];

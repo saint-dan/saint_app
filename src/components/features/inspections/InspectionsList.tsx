@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { deleteInspection } from '../../../../actions';
 
 interface InspectionsListProps {
   initialInspections: any[];
@@ -16,6 +17,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
   const searchParams = useSearchParams();
   
   const [searchTerm, setSearchTerm] = useState(currentQuery);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,18 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     params.delete('query'); // Clear search query when switching tabs
     setSearchTerm('');
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this inspection? This action cannot be undone.')) return;
+    
+    setDeletingId(id);
+    const result = await deleteInspection(id);
+    
+    if (!result.success) {
+      alert(result.error);
+    }
+    setDeletingId(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -144,13 +158,20 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                     <td className="px-6 py-5 text-sm font-medium text-slate-700">
                       {extractUserName(inspection.users)}
                     </td>
-                    <td className="px-6 py-5 text-right">
+                    <td className="px-6 py-5 text-right whitespace-nowrap">
                       <Link
                         href={`/dashboard/inspections/${inspection.id}`}
-                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:text-blue-800 hover:border-blue-200 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-all shadow-sm"
+                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:text-blue-800 hover:border-blue-200 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-all shadow-sm mr-2"
                       >
                         {currentStatus === 'Draft' ? 'Resume' : 'View'}
                       </Link>
+                      <button
+                        onClick={() => handleDelete(inspection.id)}
+                        disabled={deletingId === inspection.id}
+                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-red-600 hover:text-red-800 hover:border-red-200 hover:bg-red-50 font-semibold rounded-xl text-sm transition-all shadow-sm disabled:opacity-50"
+                      >
+                        {deletingId === inspection.id ? 'Deleting...' : 'Delete'}
+                      </button>
                     </td>
                   </tr>
                 ))
