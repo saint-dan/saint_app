@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saveInspection, createBuilder, createSite, createPosition } from '../../../../actions';
 import SignaturePad from '@/components/ui/SignaturePad';
 import PhotoUploader from '@/components/ui/PhotoUploader';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import InspectionPDF from './InspectionPDF';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -44,6 +46,12 @@ export default function NewInspectionForm({
   const [currentPage, setCurrentPage] = useState(0);
   const [inspectionId, setInspectionId] = useState<string | null>(initialInspectionId || null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Prevent Next.js hydration mismatch for the PDF Download button
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // State: Local Reference Data for inline creation
   const [localBuilders, setLocalBuilders] = useState(builders);
@@ -218,12 +226,20 @@ export default function NewInspectionForm({
   };
 
   const handleNext = async () => {
+    if (isReadOnly) {
+      setCurrentPage(prev => prev + 1);
+      return;
+    }
     if (formRef.current && !formRef.current.reportValidity()) return;
     const saved = await autoSaveDraft(undefined, 'next');
     if (saved) setCurrentPage(prev => prev + 1);
   };
 
   const handleBack = async () => {
+    if (isReadOnly) {
+      setCurrentPage(prev => prev - 1);
+      return;
+    }
     await autoSaveDraft(undefined, 'back');
     setCurrentPage(prev => prev - 1);
   };
@@ -289,6 +305,23 @@ export default function NewInspectionForm({
     }
   };
 
+  // Prepare data for the PDF
+  const pdfProps = {
+    date: displayDate,
+    inspectorName: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
+    builderName: localBuilders.find(b => b.id === headerData.builderId)?.name || 'N/A',
+    siteName: localSites.find(s => s.id === headerData.siteId)?.name || 'N/A',
+    operatives: headerData.operativesOnSite || 0,
+    supervisor: headerData.supervisorQualification || 'N/A',
+    sections,
+    questions,
+    responses,
+    signatures: signatures.map(sig => ({
+      ...sig,
+      positionName: localPositions.find(p => p.id === sig.positionId)?.name || 'Signee'
+    }))
+  };
+
   // Dynamically filter available sites based on the selected builder
   const filteredSites = localSites.filter(s => !headerData.builderId || s.builder_id === headerData.builderId);
 
@@ -327,9 +360,27 @@ export default function NewInspectionForm({
             ) : 'Save Draft & Exit'}
           </button>
         ) : (
-          <Link href="/dashboard/inspections" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
-            Close
-          </Link>
+          <div className="flex flex-wrap items-center gap-3 justify-end mt-4 sm:mt-0">
+            {isClient && (
+              <PDFDownloadLink
+                document={<InspectionPDF {...pdfProps} />}
+                fileName={`Saint_Inspection_${displayDate.replace(/\s+/g, '_')}.pdf`}
+                className="px-4 py-2 bg-blue-50 border border-blue-100 text-blue-700 font-semibold rounded-xl hover:bg-blue-100 hover:border-blue-200 transition-all text-sm flex items-center gap-2 shadow-sm"
+              >
+                {({ loading }: any) => (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    {loading ? 'Generating...' : 'Download PDF'}
+                  </>
+                )}
+              </PDFDownloadLink>
+            )}
+            <Link href="/dashboard/inspections" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
+              Close
+            </Link>
+          </div>
         )}
       </div>
 
