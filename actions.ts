@@ -3,6 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import { Resend } from 'resend';
+import { renderToBuffer } from '@react-pdf/renderer';
+import React from 'react';
+import InspectionReportEmail from '@/components/emails/InspectionReportEmail';
+import InspectionPDF from '@/components/features/inspections/InspectionPDF';
+import { Buffer } from 'buffer';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -127,7 +133,77 @@ export async function saveInspection(formData: {
     }
   }
 
-  // 4. Purge cache for the dashboard to reflect new data
+  // 4. Generate PDF and Send Email if Completed
+  if (formData.status === 'Completed') {
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY!);
+      
+      const { data: profile } = await supabase.from('users').select('first_name, last_name').eq('id', user.id).single();
+      
+      let builderData = null;
+      if (formData.builderId) {
+        const { data } = await supabase.from('builders').select('name').eq('id', formData.builderId).single();
+        builderData = data;
+      }
+
+      let siteData = null;
+      if (formData.siteId) {
+        const { data } = await supabase.from('sites').select('name').eq('id', formData.siteId).single();
+        siteData = data;
+      }
+
+      const { data: sections } = await supabase.from('inspection_sections').select('*').order('display_order');
+      const { data: questions } = await supabase.from('inspection_questions').select('*, response_types(code)').order('display_order');
+      const { data: positions } = await supabase.from('positions').select('id, name');
+
+      const inspectorName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
+      const displayDate = new Date().toLocaleDateString('en-GB', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      const signaturesWithNames = formData.signatures.map(sig => ({
+        ...sig,
+        positionName: positions?.find(p => p.id === sig.positionId)?.name || 'Signee'
+      }));
+
+      const pdfElement = React.createElement(InspectionPDF, {
+        date: displayDate,
+        inspectorName: inspectorName,
+        builderName: builderData?.name || 'N/A',
+        siteName: siteData?.name || 'N/A',
+        operatives: formData.operativesOnSite || 0,
+        supervisor: formData.supervisorQualification || 'N/A',
+        sections: sections || [],
+        questions: questions || [],
+        responses: formData.responses,
+        signatures: signaturesWithNames
+      });
+
+      // Cast to any then to Buffer to avoid type mismatch with @react-pdf/renderer's types
+      const pdfBuffer = await renderToBuffer(pdfElement) as any as Buffer;
+
+      await resend.emails.send({
+        from: 'Saint App <onboarding@resend.dev>', // Resend's free-tier testing domain
+        to: user.email!, // On the free tier, this MUST be the email address you registered your Resend account with!
+        subject: `Completed Site Inspection: ${siteData?.name || 'N/A'}`,
+        react: React.createElement(InspectionReportEmail, {
+          inspectorName,
+          siteName: siteData?.name || 'N/A',
+          date: displayDate,
+        }),
+        attachments: [
+          {
+            filename: `Saint_Inspection_${displayDate.replace(/\s+/g, '_')}.pdf`,
+            content: pdfBuffer,
+          },
+        ],
+      });
+    } catch (emailError) {
+      console.error('Failed to send PDF email:', emailError);
+    }
+  }
+
+  // 5. Purge cache for the dashboard to reflect new data
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/inspections');
   return { success: true, inspectionId: currentInspectionId };

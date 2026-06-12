@@ -17,6 +17,7 @@ const nextConfig = {
       },
     ],
   },
+  serverExternalPackages: ['@react-pdf/renderer'],
   // Your standard Next.js configuration goes here
   // Silences the warning so you can use lightning-fast Turbopack in local dev
   turbopack: {},
