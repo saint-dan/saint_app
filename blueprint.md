@@ -6,9 +6,9 @@
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
 ## Current Status & Active Milestones
-- **Current Phase:** Photo Uploads & Admin Workflows.
-- **Recently Completed:** Dynamic Site Inspection Checklist (with Draft Auto-Save), Digital Signature Capture (`react-signature-canvas`) with dynamic signees, Real Dashboard Metrics, View/Resume Inspections List, Custom UI Modals, 1200px Layout Standardization, Profile enhancements.
-- **Next Up:** (Update this regularly) Photo uploads for individual checklist questions, and Admin workflow to view and verify pending Subcontractors.
+- **Current Phase:** Admin Workflows & PDF Generation.
+- **Recently Completed:** Photo Evidence Uploads (with browser-based compression & fullscreen viewer), Dynamic DB-driven Checklist Response Types, Digital Signature Capture with dynamic signees, Real Dashboard Metrics, View/Resume Inspections List, Custom UI Modals, 1200px Layout Standardization.
+- **Next Up:** (Update this regularly) Admin workflow to view and verify pending Subcontractors, and generating PDF reports for completed Site Inspections.
 
 ## Directory Map
 ```text
