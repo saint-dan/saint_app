@@ -8,7 +8,6 @@ import { renderToBuffer } from '@react-pdf/renderer';
 import React from 'react';
 import InspectionReportEmail from '@/components/emails/InspectionReportEmail';
 import InspectionPDF from '@/components/features/inspections/InspectionPDF';
-import { Buffer } from 'buffer';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -179,8 +178,8 @@ export async function saveInspection(formData: {
         signatures: signaturesWithNames
       });
 
-      // Cast to any then to Buffer to avoid type mismatch with @react-pdf/renderer's types
-      const pdfBuffer = await renderToBuffer(pdfElement) as any as Buffer;
+      // Cast to any to avoid strict type mismatch between @react-pdf/renderer and Resend
+      const pdfBuffer = (await renderToBuffer(pdfElement)) as any;
 
       await resend.emails.send({
         from: 'Saint App <onboarding@resend.dev>', // Resend's free-tier testing domain
