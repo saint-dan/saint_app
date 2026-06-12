@@ -5,13 +5,20 @@
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
+## Current Status & Active Milestones
+- **Current Phase:** Initial setup and Subcontractor Registration flow.
+- **Recently Completed:** Project initialization, basic Supabase setup, blueprint creation.
+- **Next Up:** (Update this regularly) Implement UI for the Subcontractor registration form, wire up to Supabase auth/db.
+
 ## Directory Map
 ```text
 src/
 ├── app/                  # Next.js App Router (pages, layouts, API routes)
 ├── components/           # Reusable UI and functional components
+│   ├── ui/               # Generic/Atomic UI components (buttons, inputs)
+│   └── features/         # Feature-specific components (e.g., SubcontractorForm)
 ├── lib/                  # Shared libraries, configurations, and helpers
-├── types/                # Global TypeScript definitions and database types
+├── types/                # Global TypeScript definitions (includes auto-generated database.types.ts)
 └── utils/
     └── supabase/         # Supabase clients (server.ts, client.ts, middleware.ts)
 ```
@@ -22,8 +29,8 @@ src/
 - **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `SubcontractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.
 - **Database:** Supabase. The initialized clients for server (`server.ts`) and client (`client.ts`) are located in `src/utils/supabase/`.
-- **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution.
-- **AI Instructions:** Write DRY (Don't Repeat Yourself) code, strictly type all arguments and return values, use modern ES6+ syntax, and do not make assumptions about missing database tables—ask first.
+- **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution. Always import database types from `src/types/database.types.ts` to ensure strict type safety.
+- **AI Instructions:** Write DRY (Don't Repeat Yourself) code, strictly type all arguments and return values, use modern ES6+ syntax, and do not make assumptions about missing database tables—ask first. ALWAYS read `src/types/database.types.ts` to understand the current database schema before writing queries or Supabase mutations.
 
 ## Security
 - **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, or Database Passwords in code or workspace files.
@@ -48,27 +55,4 @@ src/
 - **Experience:** Fully responsive design that ensures an excellent layout and user experience on both mobile and desktop views. Fast performance and optimized loading are essential.
 
 ## Database Ground Truth & Schema Reference
-Currently planned tables (to be expanded):
-1. `users`:
-   - `id` (uuid, primary key)
-   - `first_name` (text)
-   - `last_name` (text)
-   - `email` (text, unique)
-   - `phone` (text)
-   - `role_id` (uuid, foreign key to roles.id)
-   - `primary_location_id` (uuid, foreign key to locations.id)
-   - `status` (text, e.g., 'Pending', 'Active')
-   - `created_at` (timestamp)
-
-2. `roles`:
-   - `id` (uuid, primary key)
-   - `name` (text, unique) - Expected values: 'Admin', 'Subcontractor', 'Contracts Manager'
-   - `description` (text)
-   - `created_at` (timestamp)
-
-3. `locations`:
-   - `id` (uuid, primary key)
-   - `name` (text)
-   - `netsuite_id` (text)
-   - `is_active` (boolean, default: true)
-   - `created_at` (timestamp)
+**CRITICAL AI INSTRUCTION:** Always refer to `src/types/database.types.ts` as the absolute source of truth for the database schema, tables, and relationships. It is auto-generated directly from the Supabase project.

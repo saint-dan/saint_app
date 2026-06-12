@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint",
+    "update-types": "npx supabase gen types typescript --project-id \"djzwpiitxwrkoseqhrcf\" > src/types/database.types.ts"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -22,6 +24,7 @@
     "@types/node": "latest",
     "@types/react": "19.2.14",
     "postcss": "latest",
+    "supabase": "^2.106.0",
     "tailwindcss": "latest",
     "typescript": "6.0.2"
   }
