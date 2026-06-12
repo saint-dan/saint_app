@@ -299,9 +299,11 @@ export default function NewInspectionForm({
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {isReadOnly ? 'View Site Inspection' : initialInspectionId ? 'Resume Site Inspection' : 'New Site Inspection'}
           </h1>
+        {isReadOnly && (
           <p className="text-slate-500 mt-2">
-            {isReadOnly ? 'Review the completed inspection details below.' : 'Complete the site inspection checklist below.'}
+            Review the completed inspection details below.
           </p>
+        )}
         </div>
         {!isReadOnly ? (
           <button 
@@ -552,7 +554,7 @@ export default function NewInspectionForm({
         {currentPage > sections.length && (
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6">
-              Sign-off {signatures.length > 1 ? `(${currentPage - sections.length} of ${signatures.length})` : ''}
+              Signatures {signatures.length > 1 ? `(${currentPage - sections.length} of ${signatures.length})` : ''}
             </h2>
             
             <div className="space-y-8 mb-8">
@@ -654,7 +656,7 @@ export default function NewInspectionForm({
         {/* 4. Submit Area */}
         <div className="flex justify-between items-center gap-4 mt-2">
           <div className="flex items-center">
-            {currentPage > 0 && (
+            {currentPage > 0 ? (
               <button
                 type="button"
                 onClick={handleBack}
@@ -670,6 +672,15 @@ export default function NewInspectionForm({
                     Saving...
                   </>
                 ) : 'Back'}
+              </button>
+            ) : !isReadOnly && (
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/inspections')}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-red-600 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                Cancel
               </button>
             )}
           </div>

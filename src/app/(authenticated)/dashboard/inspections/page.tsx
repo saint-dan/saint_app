@@ -26,6 +26,7 @@ export default async function InspectionsPage({
   // Default to Draft so clicking the generic link or landing here opens Drafts first
   const status = (resolvedParams?.status as string) || 'Draft';
   const query = (resolvedParams?.query as string) || '';
+  const page = parseInt((resolvedParams?.page as string) || '1', 10);
 
   // Fetch user role to determine data access
   const { data: profile } = await supabase
@@ -80,12 +81,19 @@ export default async function InspectionsPage({
     });
   }
 
+  // Pagination logic (10 rows per page)
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredInspections.length / itemsPerPage);
+  const paginatedInspections = filteredInspections.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <InspectionsList 
-        initialInspections={filteredInspections} 
+        initialInspections={paginatedInspections} 
         currentStatus={status} 
         currentQuery={query}
+        currentPage={page}
+        totalPages={totalPages}
       />
     </div>
   );

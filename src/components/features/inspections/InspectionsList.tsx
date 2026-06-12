@@ -9,9 +9,11 @@ interface InspectionsListProps {
   initialInspections: any[];
   currentStatus: string;
   currentQuery: string;
+  currentPage: number;
+  totalPages: number;
 }
 
-export default function InspectionsList({ initialInspections, currentStatus, currentQuery }: InspectionsListProps) {
+export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages }: InspectionsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -28,6 +30,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     } else {
       params.delete('query');
     }
+    params.set('page', '1'); // Reset to page 1 on new search
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -35,7 +38,15 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     const params = new URLSearchParams(searchParams.toString());
     params.set('status', newStatus);
     params.delete('query'); // Clear search query when switching tabs
+    params.set('page', '1'); // Reset to page 1
     setSearchTerm('');
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -78,15 +89,23 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspections</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Site Inspections</h1>
           <p className="text-slate-500 mt-1">View and manage site inspections.</p>
         </div>
-        <Link 
-          href="/dashboard"
-          className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all text-sm flex items-center gap-2"
-        >
-          Back to Dashboard
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link 
+            href="/dashboard"
+            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all text-sm flex items-center gap-2 shadow-sm"
+          >
+            Back
+          </Link>
+          <Link 
+            href="/dashboard/inspections/new"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2"
+          >
+            + Create New Inspection
+          </Link>
+        </div>
       </div>
 
       {/* Controls */}
@@ -183,6 +202,31 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="bg-white border-t border-slate-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-slate-500 font-medium text-center sm:text-left">
+              Page <span className="font-bold text-slate-900">{currentPage}</span> of <span className="font-bold text-slate-900">{totalPages}</span>
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Custom Delete Confirmation Modal */}
