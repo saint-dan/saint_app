@@ -34,6 +34,8 @@ export default function ProfilePage() {
     companyRegNumber: '',
     utr: '',
     cisStatus: '20%',
+    qualification: '',
+    jobTitle: '',
   });
 
   useEffect(() => {
@@ -77,6 +79,8 @@ export default function ProfilePage() {
           companyRegNumber: profileData.company_reg_number || '',
           utr: profileData.utr_number || '',
           cisStatus: profileData.cis_status || '20%',
+          qualification: profileData.qualification || '',
+          jobTitle: profileData.job_title || '',
         });
 
         const roleData = profileData.roles;
@@ -120,6 +124,8 @@ export default function ProfilePage() {
         company_reg_number: formData.accountType === 'Limited Company' ? formData.companyRegNumber : null,
         utr_number: formData.utr,
         cis_status: formData.cisStatus,
+        qualification: formData.qualification || null,
+        job_title: formData.jobTitle || null,
       })
       .eq('id', user.id);
 
@@ -267,6 +273,35 @@ export default function ProfilePage() {
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
                     title="If you need to change this, please contact Saint Flooring"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-2">
+                  <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-700">Job Title</label>
+                  <input
+                    type="text"
+                    id="jobTitle"
+                    name="jobTitle"
+                    value={formData.jobTitle}
+                    onChange={handleChange}
+                    placeholder="e.g. Site Manager"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="qualification" className="text-sm font-semibold text-slate-700">Qualification</label>
+                  <select
+                    id="qualification"
+                    name="qualification"
+                    value={formData.qualification}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
+                  >
+                    <option value="">None / Not specified</option>
+                    <option value="SSSTS">SSSTS</option>
+                    <option value="SMSTS">SMSTS</option>
+                  </select>
                 </div>
               </div>
             </div>

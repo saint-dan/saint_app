@@ -192,7 +192,6 @@ export type Database = {
           site_id: string | null
           status: string | null
           supervisor_qualification: string | null
-          weather_conditions: string | null
         }
         Insert: {
           builder_id?: string | null
@@ -204,7 +203,6 @@ export type Database = {
           site_id?: string | null
           status?: string | null
           supervisor_qualification?: string | null
-          weather_conditions?: string | null
         }
         Update: {
           builder_id?: string | null
@@ -216,7 +214,6 @@ export type Database = {
           site_id?: string | null
           status?: string | null
           supervisor_qualification?: string | null
-          weather_conditions?: string | null
         }
         Relationships: [
           {
@@ -290,6 +287,7 @@ export type Database = {
           national_insurance: string | null
           phone: string | null
           primary_location_id: string | null
+          qualification: string | null
           role_id: string
           status: string | null
           utr_number: string | null
@@ -309,6 +307,7 @@ export type Database = {
           national_insurance?: string | null
           phone?: string | null
           primary_location_id?: string | null
+          qualification?: string | null
           role_id?: string
           status?: string | null
           utr_number?: string | null
@@ -328,6 +327,7 @@ export type Database = {
           national_insurance?: string | null
           phone?: string | null
           primary_location_id?: string | null
+          qualification?: string | null
           role_id?: string
           status?: string | null
           utr_number?: string | null

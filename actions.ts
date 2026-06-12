@@ -49,7 +49,6 @@ export async function saveInspection(formData: {
   siteId: string;
   operativesOnSite: number;
   supervisorQualification: string;
-  weatherConditions: string;
   responses: Record<string, { isCompliant: boolean | null; comments: string }>;
   status: string;
 }) {
@@ -68,7 +67,6 @@ export async function saveInspection(formData: {
       site_id: formData.siteId || null,
       operatives_on_site: formData.operativesOnSite || null,
       supervisor_qualification: formData.supervisorQualification || null,
-      weather_conditions: formData.weatherConditions,
       status: formData.status
   };
 
@@ -114,6 +112,48 @@ export async function saveInspection(formData: {
   // 3. Purge cache for the dashboard to reflect new data
   revalidatePath('/dashboard');
   return { success: true, inspectionId: currentInspectionId };
+}
+
+export async function createBuilder(name: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  const { data, error } = await supabase
+    .from('builders')
+    .insert({ name, is_active: true })
+    .select('id, name')
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Failed to create builder: ' + error?.message };
+  }
+
+  return { success: true, builder: data };
+}
+
+export async function createSite(name: string, builderId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  const { data, error } = await supabase
+    .from('sites')
+    .insert({ name, builder_id: builderId, is_active: true })
+    .select('id, name, builder_id')
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Failed to create site: ' + error?.message };
+  }
+
+  return { success: true, site: data };
 }
 
 export async function logout() {

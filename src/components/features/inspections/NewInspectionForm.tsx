@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { saveInspection } from '../../../../actions';
+import { saveInspection, createBuilder, createSite } from '../../../../actions';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -28,6 +28,18 @@ export default function NewInspectionForm({
   const formRef = useRef<HTMLFormElement>(null);
   const totalPages = sections.length + 1; // Header + 1 page per section
 
+  // State: Local Reference Data for inline creation
+  const [localBuilders, setLocalBuilders] = useState(builders);
+  const [localSites, setLocalSites] = useState(sites);
+
+  const [isAddingBuilder, setIsAddingBuilder] = useState(false);
+  const [newBuilderName, setNewBuilderName] = useState('');
+  const [isSavingBuilder, setIsSavingBuilder] = useState(false);
+
+  const [isAddingSite, setIsAddingSite] = useState(false);
+  const [newSiteName, setNewSiteName] = useState('');
+  const [isSavingSite, setIsSavingSite] = useState(false);
+
   // Formatter for display
   const today = new Date().toLocaleDateString('en-GB', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -38,8 +50,7 @@ export default function NewInspectionForm({
     builderId: '',
     siteId: '',
     operativesOnSite: '',
-    supervisorQualification: '',
-    weatherConditions: ''
+    supervisorQualification: profile?.qualification || ''
   });
 
   // State: Question Responses
@@ -52,7 +63,12 @@ export default function NewInspectionForm({
   });
 
   const handleHeaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setHeaderData({ ...headerData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'builderId') {
+      setHeaderData({ ...headerData, builderId: value, siteId: '' }); // Clear site when builder changes
+    } else {
+      setHeaderData({ ...headerData, [name]: value });
+    }
   };
 
   const handleResponseChange = (questionId: string, field: 'isCompliant' | 'comments', value: any) => {
@@ -60,6 +76,46 @@ export default function NewInspectionForm({
       ...prev,
       [questionId]: { ...prev[questionId], [field]: value }
     }));
+  };
+
+  const handleCreateBuilder = async () => {
+    if (!newBuilderName.trim()) return;
+    setIsSavingBuilder(true);
+    try {
+      const res = await createBuilder(newBuilderName);
+      if (res.success && res.builder) {
+        setLocalBuilders(prev => [...prev, res.builder]);
+        setHeaderData(prev => ({ ...prev, builderId: res.builder.id, siteId: '' }));
+        setIsAddingBuilder(false);
+        setNewBuilderName('');
+      } else {
+        setError(res.error || 'Failed to create builder');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsSavingBuilder(false);
+    }
+  };
+
+  const handleCreateSite = async () => {
+    if (!newSiteName.trim() || !headerData.builderId) return;
+    setIsSavingSite(true);
+    try {
+      const res = await createSite(newSiteName, headerData.builderId);
+      if (res.success && res.site) {
+        setLocalSites(prev => [...prev, res.site]);
+        setHeaderData(prev => ({ ...prev, siteId: res.site.id }));
+        setIsAddingSite(false);
+        setNewSiteName('');
+      } else {
+        setError(res.error || 'Failed to create site');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsSavingSite(false);
+    }
   };
 
   const autoSaveDraft = async () => {
@@ -72,7 +128,6 @@ export default function NewInspectionForm({
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
-        weatherConditions: headerData.weatherConditions,
         responses,
         status: 'Draft'
       };
@@ -121,7 +176,6 @@ export default function NewInspectionForm({
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
-        weatherConditions: headerData.weatherConditions,
         responses,
         status: 'Completed'
       };
@@ -140,7 +194,7 @@ export default function NewInspectionForm({
   };
 
   // Dynamically filter available sites based on the selected builder
-  const filteredSites = sites.filter(s => !headerData.builderId || s.builder_id === headerData.builderId);
+  const filteredSites = localSites.filter(s => !headerData.builderId || s.builder_id === headerData.builderId);
 
   return (
     <>
@@ -178,55 +232,113 @@ export default function NewInspectionForm({
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6">Inspection Details</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
             <div className="space-y-1">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Inspector</span>
               <p className="text-slate-900 font-semibold">{profile?.first_name} {profile?.last_name}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Date</span>
-              <p className="text-slate-900 font-semibold">{today}</p>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Position</span>
+              <p className="text-slate-900 font-semibold">{profile?.job_title || 'Not specified'}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Qualification</span>
+              <p className="text-slate-900 font-semibold">{profile?.qualification || 'Not specified'}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            {/* Builder Selection / Creation */}
             <div className="space-y-2">
-              <label htmlFor="builderId" className="text-sm font-semibold text-slate-700">Builder</label>
-              <select
-                id="builderId"
-                name="builderId"
-                value={headerData.builderId}
-                onChange={handleHeaderChange}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700"
-                required
-              >
-                <option value="" disabled>Select a Builder</option>
-                {builders.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+              <div className="flex justify-between items-center">
+                <label htmlFor="builderId" className="text-sm font-semibold text-slate-700">Builder</label>
+                {!isAddingBuilder && (
+                  <button type="button" onClick={() => setIsAddingBuilder(true)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                    + Add New
+                  </button>
+                )}
+              </div>
+              {isAddingBuilder ? (
+                <div className="flex gap-2 animate-in fade-in zoom-in-95 duration-200">
+                  <input
+                    type="text"
+                    value={newBuilderName}
+                    onChange={(e) => setNewBuilderName(e.target.value)}
+                    placeholder="Builder Name..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
+                    autoFocus
+                  />
+                  <button type="button" onClick={handleCreateBuilder} disabled={isSavingBuilder} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 shrink-0">
+                    {isSavingBuilder ? '...' : 'Save'}
+                  </button>
+                  <button type="button" onClick={() => setIsAddingBuilder(false)} disabled={isSavingBuilder} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors shrink-0">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <select
+                  id="builderId"
+                  name="builderId"
+                  value={headerData.builderId}
+                  onChange={handleHeaderChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700"
+                  required
+                >
+                  <option value="" disabled>Select a Builder</option>
+                  {localBuilders.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
+            {/* Site Selection / Creation */}
             <div className="space-y-2">
-              <label htmlFor="siteId" className="text-sm font-semibold text-slate-700">Site</label>
-              <select
-                id="siteId"
-                name="siteId"
-                value={headerData.siteId}
-                onChange={handleHeaderChange}
-                disabled={!headerData.builderId}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                required
-              >
-                <option value="" disabled>Select a Site</option>
-                {filteredSites.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+              <div className="flex justify-between items-center">
+                <label htmlFor="siteId" className="text-sm font-semibold text-slate-700">Site</label>
+                {!isAddingSite && headerData.builderId && (
+                  <button type="button" onClick={() => setIsAddingSite(true)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                    + Add New
+                  </button>
+                )}
+              </div>
+              {isAddingSite ? (
+                <div className="flex gap-2 animate-in fade-in zoom-in-95 duration-200">
+                  <input
+                    type="text"
+                    value={newSiteName}
+                    onChange={(e) => setNewSiteName(e.target.value)}
+                    placeholder="Site Name..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
+                    autoFocus
+                  />
+                  <button type="button" onClick={handleCreateSite} disabled={isSavingSite} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 shrink-0">
+                    {isSavingSite ? '...' : 'Save'}
+                  </button>
+                  <button type="button" onClick={() => setIsAddingSite(false)} disabled={isSavingSite} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors shrink-0">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <select
+                  id="siteId"
+                  name="siteId"
+                  value={headerData.siteId}
+                  onChange={handleHeaderChange}
+                  disabled={!headerData.builderId}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  required
+                >
+                  <option value="" disabled>Select a Site</option>
+                  {filteredSites.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label htmlFor="operativesOnSite" className="text-sm font-semibold text-slate-700">Operatives on Site</label>
               <input
@@ -242,33 +354,10 @@ export default function NewInspectionForm({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="supervisorQualification" className="text-sm font-semibold text-slate-700">Supervisor Qual.</label>
-              <select
-                id="supervisorQualification"
-                name="supervisorQualification"
-                value={headerData.supervisorQualification}
-                onChange={handleHeaderChange}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700"
-                required
-              >
-                <option value="" disabled>Select</option>
-                <option value="SSSTS">SSSTS</option>
-                <option value="SMSTS">SMSTS</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="weatherConditions" className="text-sm font-semibold text-slate-700">Weather</label>
-              <input
-                type="text"
-                id="weatherConditions"
-                name="weatherConditions"
-                value={headerData.weatherConditions}
-                onChange={handleHeaderChange}
-                placeholder="e.g. Dry, Raining"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
-                required
-              />
+              <label className="text-sm font-semibold text-slate-700">Date</label>
+              <div className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 shadow-sm cursor-not-allowed">
+                {today}
+              </div>
             </div>
           </div>
         </div>
@@ -345,7 +434,7 @@ export default function NewInspectionForm({
           })}
 
         {/* 3. Submit Area */}
-        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 flex justify-between items-center gap-4">
+        <div className="flex justify-between items-center gap-4 mt-2">
           <div className="flex items-center">
             {currentPage > 0 && (
               <button

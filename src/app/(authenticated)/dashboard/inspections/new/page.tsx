@@ -23,7 +23,7 @@ export default async function NewInspectionPage() {
   // 1. Fetch user profile & job title
   const { data: profile } = await supabase
     .from('users')
-    .select('first_name, last_name, job_title')
+    .select('first_name, last_name, job_title, qualification')
     .eq('id', user.id)
     .single();
 
