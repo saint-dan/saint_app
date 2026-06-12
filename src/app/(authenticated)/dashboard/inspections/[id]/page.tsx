@@ -54,7 +54,8 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
       if (r.question_id) {
         initialResponses[r.question_id] = {
           isCompliant: r.is_compliant,
-          comments: r.comments || ''
+          comments: r.comments || '',
+          photoUrls: r.photo_urls || []
         };
       }
     });

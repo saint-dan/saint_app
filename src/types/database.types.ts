@@ -37,6 +37,7 @@ export type Database = {
       }
       inspection_questions: {
         Row: {
+          allow_photos: boolean | null
           created_at: string | null
           display_order: number
           id: string
@@ -46,6 +47,7 @@ export type Database = {
           section_id: string | null
         }
         Insert: {
+          allow_photos?: boolean | null
           created_at?: string | null
           display_order?: number
           id?: string
@@ -55,6 +57,7 @@ export type Database = {
           section_id?: string | null
         }
         Update: {
+          allow_photos?: boolean | null
           created_at?: string | null
           display_order?: number
           id?: string
@@ -87,6 +90,7 @@ export type Database = {
           id: string
           inspection_id: string | null
           is_compliant: boolean | null
+          photo_urls: string[] | null
           question_id: string | null
         }
         Insert: {
@@ -95,6 +99,7 @@ export type Database = {
           id?: string
           inspection_id?: string | null
           is_compliant?: boolean | null
+          photo_urls?: string[] | null
           question_id?: string | null
         }
         Update: {
@@ -103,6 +108,7 @@ export type Database = {
           id?: string
           inspection_id?: string | null
           is_compliant?: boolean | null
+          photo_urls?: string[] | null
           question_id?: string | null
         }
         Relationships: [

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saveInspection, createBuilder, createSite, createPosition } from '../../../../actions';
 import SignaturePad from '@/components/ui/SignaturePad';
+import PhotoUploader from '@/components/ui/PhotoUploader';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -75,10 +76,10 @@ export default function NewInspectionForm({
   });
 
   // State: Question Responses
-  const [responses, setResponses] = useState<Record<string, { isCompliant: boolean | null, comments: string }>>(() => {
-    const initial: Record<string, { isCompliant: boolean | null, comments: string }> = {};
+  const [responses, setResponses] = useState<Record<string, { isCompliant: boolean | null, comments: string, photoUrls: string[] }>>(() => {
+    const initial: Record<string, { isCompliant: boolean | null, comments: string, photoUrls: string[] }> = {};
     questions.forEach(q => {
-      initial[q.id] = initialResponses?.[q.id] || { isCompliant: null, comments: '' };
+      initial[q.id] = initialResponses?.[q.id] || { isCompliant: null, comments: '', photoUrls: [] };
     });
     return initial;
   });
@@ -108,7 +109,7 @@ export default function NewInspectionForm({
     }
   };
 
-  const handleResponseChange = (questionId: string, field: 'isCompliant' | 'comments', value: any) => {
+  const handleResponseChange = (questionId: string, field: 'isCompliant' | 'comments' | 'photoUrls', value: any) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: { ...prev[questionId], [field]: value }
@@ -549,6 +550,17 @@ export default function NewInspectionForm({
                             required={responseTypeCode === 'YES_NO_NA_COMMENTS' && resp.isCompliant === false}
                           />
                         </div>
+                        )}
+
+                        {/* Photo Evidence Upload */}
+                        {q.allow_photos && (
+                          <div className="mt-2">
+                            <PhotoUploader 
+                              urls={resp.photoUrls || []} 
+                              onChange={(urls) => handleResponseChange(q.id, 'photoUrls', urls)} 
+                              disabled={isReadOnly} 
+                            />
+                          </div>
                         )}
                       </div>
                     );

@@ -8,6 +8,15 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'djzwpiitxwrkoseqhrcf.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   // Your standard Next.js configuration goes here
   // Silences the warning so you can use lightning-fast Turbopack in local dev
   turbopack: {},

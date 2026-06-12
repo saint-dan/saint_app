@@ -49,7 +49,7 @@ export async function saveInspection(formData: {
   siteId: string;
   operativesOnSite: number;
   supervisorQualification: string;
-  responses: Record<string, { isCompliant: boolean | null; comments: string }>;
+  responses: Record<string, { isCompliant: boolean | null; comments: string; photoUrls: string[] }>;
   signatures: Array<{ name: string; positionId: string; signatureData: string }>;
   status: string;
 }) {
@@ -94,12 +94,13 @@ export async function saveInspection(formData: {
     await supabase.from('inspection_responses').delete().eq('inspection_id', currentInspectionId);
 
     const responseRecords = Object.entries(formData.responses)
-      .filter(([_, answer]) => answer.isCompliant !== null || answer.comments !== '')
+      .filter(([_, answer]) => answer.isCompliant !== null || answer.comments !== '' || answer.photoUrls.length > 0)
       .map(([questionId, answer]) => ({
         inspection_id: currentInspectionId!,
         question_id: questionId,
         is_compliant: answer.isCompliant,
-        comments: answer.comments || null
+        comments: answer.comments || null,
+        photo_urls: answer.photoUrls || []
       }));
 
     if (responseRecords.length > 0) {
