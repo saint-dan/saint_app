@@ -43,13 +43,15 @@ export async function signup(formData: FormData) {
   redirect('/dashboard');
 }
 
-export async function submitInspection(formData: {
+export async function saveInspection(formData: {
+  inspectionId?: string;
   builderId: string;
   siteId: string;
   operativesOnSite: number;
   supervisorQualification: string;
   weatherConditions: string;
   responses: Record<string, { isCompliant: boolean | null; comments: string }>;
+  status: string;
 }) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -58,46 +60,60 @@ export async function submitInspection(formData: {
     return { success: false, error: 'User not authenticated' };
   }
 
-  // 1. Insert Header Record
-  const { data: inspection, error: inspectionError } = await supabase
-    .from('site_inspections')
-    .insert({
+  let currentInspectionId = formData.inspectionId;
+
+  const headerPayload = {
       inspector_id: user.id,
-      builder_id: formData.builderId,
-      site_id: formData.siteId,
-      operatives_on_site: formData.operativesOnSite,
+      builder_id: formData.builderId || null,
+      site_id: formData.siteId || null,
+      operatives_on_site: formData.operativesOnSite || null,
       supervisor_qualification: formData.supervisorQualification || null,
       weather_conditions: formData.weatherConditions,
-      status: 'Completed'
-    })
-    .select()
-    .single();
+      status: formData.status
+  };
 
-  if (inspectionError || !inspection) {
-    return { success: false, error: 'Failed to create inspection: ' + inspectionError?.message };
+  if (currentInspectionId) {
+    const { error } = await supabase
+      .from('site_inspections')
+      .update(headerPayload)
+      .eq('id', currentInspectionId);
+    if (error) return { success: false, error: 'Failed to update inspection: ' + error.message };
+  } else {
+    const { data, error } = await supabase
+      .from('site_inspections')
+      .insert(headerPayload)
+      .select()
+      .single();
+      
+    if (error || !data) return { success: false, error: 'Failed to create inspection: ' + error?.message };
+    currentInspectionId = data.id;
   }
 
-  // 2. Prepare & Insert Checklist Responses
-  const responseRecords = Object.entries(formData.responses).map(([questionId, answer]) => ({
-    inspection_id: inspection.id,
-    question_id: questionId,
-    is_compliant: answer.isCompliant,
-    comments: answer.comments || null
-  }));
+  // 2. Refresh Checklist Responses
+  if (currentInspectionId) {
+    await supabase.from('inspection_responses').delete().eq('inspection_id', currentInspectionId);
 
-  if (responseRecords.length > 0) {
-    const { error: responsesError } = await supabase
-      .from('inspection_responses')
-      .insert(responseRecords);
+    const responseRecords = Object.entries(formData.responses)
+      .filter(([_, answer]) => answer.isCompliant !== null || answer.comments !== '')
+      .map(([questionId, answer]) => ({
+        inspection_id: currentInspectionId!,
+        question_id: questionId,
+        is_compliant: answer.isCompliant,
+        comments: answer.comments || null
+      }));
 
-    if (responsesError) {
-      return { success: false, error: 'Failed to save responses: ' + responsesError.message };
+    if (responseRecords.length > 0) {
+      const { error: responsesError } = await supabase
+        .from('inspection_responses')
+        .insert(responseRecords);
+
+      if (responsesError) return { success: false, error: 'Failed to save responses: ' + responsesError.message };
     }
   }
 
   // 3. Purge cache for the dashboard to reflect new data
   revalidatePath('/dashboard');
-  return { success: true, inspectionId: inspection.id };
+  return { success: true, inspectionId: currentInspectionId };
 }
 
 export async function logout() {

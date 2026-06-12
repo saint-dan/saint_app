@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { submitInspection } from '../../../../actions';
+import { saveInspection } from '../../../../actions';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -23,6 +22,11 @@ export default function NewInspectionForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [currentPage, setCurrentPage] = useState(0);
+  const [inspectionId, setInspectionId] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const totalPages = sections.length + 1; // Header + 1 page per section
 
   // Formatter for display
   const today = new Date().toLocaleDateString('en-GB', {
@@ -58,23 +62,71 @@ export default function NewInspectionForm({
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const autoSaveDraft = async () => {
     setIsSubmitting(true);
     setError(null);
-
     try {
       const submissionData = {
+        inspectionId: inspectionId || undefined,
         builderId: headerData.builderId,
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
         weatherConditions: headerData.weatherConditions,
-        responses
+        responses,
+        status: 'Draft'
+      };
+      const result = await saveInspection(submissionData);
+      if (result.success && result.inspectionId) {
+        setInspectionId(result.inspectionId);
+        return true;
+      } else {
+        setError(result.error || 'Failed to save draft');
+        return false;
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNext = async () => {
+    if (formRef.current && !formRef.current.reportValidity()) return;
+    const saved = await autoSaveDraft();
+    if (saved) setCurrentPage(prev => prev + 1);
+  };
+
+  const handleBack = async () => {
+    await autoSaveDraft();
+    setCurrentPage(prev => prev - 1);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (currentPage < totalPages - 1) {
+      await handleNext();
+      return;
+    }
+    
+    if (formRef.current && !formRef.current.reportValidity()) return;
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const submissionData = {
+        inspectionId: inspectionId || undefined,
+        builderId: headerData.builderId,
+        siteId: headerData.siteId,
+        operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
+        supervisorQualification: headerData.supervisorQualification,
+        weatherConditions: headerData.weatherConditions,
+        responses,
+        status: 'Completed'
       };
 
-      const result = await submitInspection(submissionData);
-
+      const result = await saveInspection(submissionData);
       if (result.success) {
         router.push('/dashboard');
       } else {
@@ -98,17 +150,32 @@ export default function NewInspectionForm({
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">New Site Inspection</h1>
           <p className="text-slate-500 mt-2">Complete the site inspection checklist below.</p>
         </div>
-        <Link 
-          href="/dashboard"
+        <button 
+          type="button"
+          onClick={async () => {
+            if (headerData.builderId) await autoSaveDraft();
+            router.push('/dashboard');
+          }}
           className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2"
         >
-          Cancel
-        </Link>
+          Save Draft & Exit
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Progress Bar */}
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex-1 flex items-center gap-2">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <div key={i} className={`h-2 flex-1 rounded-full transition-colors ${i === currentPage ? 'bg-blue-600' : i < currentPage ? 'bg-blue-300' : 'bg-slate-200'}`} />
+          ))}
+        </div>
+        <span className="text-sm font-semibold text-slate-500 whitespace-nowrap">Step {currentPage + 1} of {totalPages}</span>
+      </div>
+
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
         {/* 1. Header Information Card */}
-        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10">
+        {currentPage === 0 && (
+          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6">Inspection Details</h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
@@ -205,15 +272,18 @@ export default function NewInspectionForm({
             </div>
           </div>
         </div>
+        )}
 
         {/* 2. Dynamic Checklist Sections */}
-        <div className="space-y-6">
           {sections.map(section => {
+            const sectionPage = sections.indexOf(section) + 1;
+            if (currentPage !== sectionPage) return null;
+
             const sectionQuestions = questions.filter(q => q.section_id === section.id);
             if (sectionQuestions.length === 0) return null;
 
             return (
-              <div key={section.id} className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+              <div key={section.id} className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-slate-50 border-b border-slate-100 px-6 py-4">
                   <h3 className="text-lg font-bold text-slate-900">{section.title}</h3>
                 </div>
@@ -273,28 +343,60 @@ export default function NewInspectionForm({
               </div>
             );
           })}
-        </div>
 
         {/* 3. Submit Area */}
-        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 flex flex-col sm:flex-row justify-end items-center gap-4">
-          {error && (
-            <p className="text-red-500 font-medium text-sm mr-auto">{error}</p>
-          )}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Submitting...
-              </>
-            ) : 'Save & Submit Inspection'}
-          </button>
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 flex justify-between items-center gap-4">
+          <div className="flex items-center">
+            {currentPage > 0 && (
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
+              >
+                Back
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            {error && <p className="text-red-500 font-medium text-sm text-center sm:text-right">{error}</p>}
+            
+            {currentPage < totalPages - 1 ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-md transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : 'Next'}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl shadow-md transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </>
+                ) : 'Submit Inspection'}
+              </button>
+            )}
+          </div>
           </div>
       </form>
     </>
