@@ -136,6 +136,48 @@ export type Database = {
         }
         Relationships: []
       }
+      inspection_signatures: {
+        Row: {
+          created_at: string | null
+          id: string
+          inspection_id: string | null
+          name: string
+          position_id: string | null
+          signature_data: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inspection_id?: string | null
+          name: string
+          position_id?: string | null
+          signature_data: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inspection_id?: string | null
+          name?: string
+          position_id?: string | null
+          signature_data?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_signatures_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "site_inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_signatures_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           created_at: string | null
@@ -157,6 +199,27 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           netsuite_id?: string | null
+        }
+        Relationships: []
+      }
+      positions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
         }
         Relationships: []
       }
