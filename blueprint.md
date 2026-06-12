@@ -6,9 +6,9 @@
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 
 ## Current Status & Active Milestones
-- **Current Phase:** Contracts Manager Workflows & Data Visualization.
-- **Recently Completed:** Subcontractor Registration, Role-based Dashboard Routing, Contracts Manager Portal, Dynamic Site Inspection Checklist (UI, Server Actions, DB Tables).
-- **Next Up:** (Update this regularly) Dashboard metrics (actual data fetching), view past completed inspections, photo uploads for inspections, and Admin verification workflows.
+- **Current Phase:** Photo Uploads & Admin Workflows.
+- **Recently Completed:** Dynamic Site Inspection Checklist (with Draft Auto-Save), Real Dashboard Metrics, View/Resume Inspections List, Dynamic Route Consolidation (`[id]`), Custom UI Modals, 1200px Layout Standardization.
+- **Next Up:** (Update this regularly) Photo uploads for inspections to Supabase Storage, and Admin verification workflows for pending Subcontractors.
 
 ## Directory Map
 ```text
@@ -56,6 +56,8 @@
 - **Aesthetics:** Premium feel with clean spacing, gradient backgrounds, and a consistent, high-quality color palette.
 - **Typography:** Thoughtful typography for hierarchy and readability.
 - **Components & Styling:** Consistent UI components with depth (subtle shadows, rounded-2xl or rounded-3xl corners).
+- **Layout Constraints:** Standardize page and header constraints using `w-full max-w-[1200px] mx-auto`. This ensures a premium, contained feel on ultra-wide monitors while fluidly filling normal screens.
+- **Modals & Alerts:** Do not use native browser `window.confirm` or `alert`. Always implement custom, app-styled React modals with backdrop blurs (`bg-slate-900/40 backdrop-blur-sm`) to maintain a cohesive, high-end aesthetic.
 - **Primary Actions:** Standardize primary action and submit buttons to use a blue gradient (`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white`).
 - **Interactions:** Smooth micro-interactions, elegant hover states on buttons/inputs, subtle animations, and intuitive feedback.
 - **Experience:** Fully responsive design that ensures an excellent layout and user experience on both mobile and desktop views. Fast performance and optimized loading are essential.

@@ -50,6 +50,7 @@ export async function saveInspection(formData: {
   operativesOnSite: number;
   supervisorQualification: string;
   responses: Record<string, { isCompliant: boolean | null; comments: string }>;
+  signatures: Array<{ name: string; positionId: string; signatureData: string }>;
   status: string;
 }) {
   const supabase = await createClient();
@@ -108,9 +109,24 @@ export async function saveInspection(formData: {
 
       if (responsesError) return { success: false, error: 'Failed to save responses: ' + responsesError.message };
     }
+
+    // 3. Refresh Signatures
+    await supabase.from('inspection_signatures').delete().eq('inspection_id', currentInspectionId);
+
+    const validSignatures = formData.signatures.filter(s => s.name && s.signatureData);
+    if (validSignatures.length > 0) {
+      const signatureRecords = validSignatures.map(s => ({
+        inspection_id: currentInspectionId!,
+        name: s.name,
+        position_id: s.positionId || null,
+        signature_data: s.signatureData
+      }));
+      const { error: sigError } = await supabase.from('inspection_signatures').insert(signatureRecords);
+      if (sigError) return { success: false, error: 'Failed to save signatures: ' + sigError.message };
+    }
   }
 
-  // 3. Purge cache for the dashboard to reflect new data
+  // 4. Purge cache for the dashboard to reflect new data
   revalidatePath('/dashboard');
   return { success: true, inspectionId: currentInspectionId };
 }
@@ -155,6 +171,27 @@ export async function createSite(name: string, builderId: string) {
   }
 
   return { success: true, site: data };
+}
+
+export async function createPosition(name: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  const { data, error } = await supabase
+    .from('positions')
+    .insert({ name, is_active: true })
+    .select('id, name')
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Failed to create position: ' + error?.message };
+  }
+
+  return { success: true, position: data };
 }
 
 export async function deleteInspection(id: string) {

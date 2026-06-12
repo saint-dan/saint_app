@@ -23,6 +23,7 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
 
   let inspection = null;
   const initialResponses: Record<string, any> = {};
+  let initialSignatures: any[] = [];
   let initialHeaderData = {
     builderId: '',
     siteId: '',
@@ -58,6 +59,18 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
       }
     });
 
+    // 3. Fetch signatures for this inspection
+    const { data: signatureRecords } = await supabase
+      .from('inspection_signatures')
+      .select('*')
+      .eq('inspection_id', params.id);
+
+    initialSignatures = signatureRecords?.map(s => ({
+      name: s.name,
+      positionId: s.position_id || '',
+      signatureData: s.signature_data
+    })) || [];
+
     initialHeaderData = {
       builderId: inspection.builder_id || '',
       siteId: inspection.site_id || '',
@@ -66,12 +79,13 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
     };
   }
 
-  // 3. Fetch reference data (used for both New and Edit modes)
+  // 4. Fetch reference data (used for both New and Edit modes)
   const { data: profile } = await supabase.from('users').select('first_name, last_name, job_title, qualification').eq('id', user.id).single();
   const { data: builders } = await supabase.from('builders').select('id, name').eq('is_active', true).order('name');
   const { data: sites } = await supabase.from('sites').select('id, name, builder_id').eq('is_active', true).order('name');
   const { data: sections } = await supabase.from('inspection_sections').select('*').eq('is_active', true).order('display_order');
   const { data: questions } = await supabase.from('inspection_questions').select('*').eq('is_active', true).order('display_order');
+  const { data: positions } = await supabase.from('positions').select('id, name').eq('is_active', true).order('name');
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -81,11 +95,13 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
         sites={sites || []}
         sections={sections || []}
         questions={questions || []}
+        positions={positions || []}
         
         // Pre-fill the form props if editing/viewing
         initialInspectionId={inspection?.id}
         initialHeaderData={initialHeaderData}
         initialResponses={initialResponses}
+        initialSignatures={initialSignatures}
         initialDate={inspection?.status === 'Completed' ? inspection?.inspection_date : undefined}
         isReadOnly={inspection?.status === 'Completed'}
       />

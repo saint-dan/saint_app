@@ -3,7 +3,8 @@
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { saveInspection, createBuilder, createSite } from '../../../../actions';
+import { saveInspection, createBuilder, createSite, createPosition } from '../../../../actions';
+import SignaturePad from '@/components/ui/SignaturePad';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -11,9 +12,11 @@ interface NewInspectionFormProps {
   sites: any[];
   sections: any[];
   questions: any[];
+  positions: any[];
   initialInspectionId?: string;
   initialHeaderData?: any;
   initialResponses?: any;
+  initialSignatures?: any[];
   isReadOnly?: boolean;
   initialDate?: string;
 }
@@ -24,9 +27,11 @@ export default function NewInspectionForm({
   sites,
   sections,
   questions,
+  positions,
   initialInspectionId,
   initialHeaderData,
   initialResponses,
+  initialSignatures,
   isReadOnly = false,
   initialDate
 }: NewInspectionFormProps) {
@@ -37,11 +42,12 @@ export default function NewInspectionForm({
   const [currentPage, setCurrentPage] = useState(0);
   const [inspectionId, setInspectionId] = useState<string | null>(initialInspectionId || null);
   const formRef = useRef<HTMLFormElement>(null);
-  const totalPages = sections.length + 1; // Header + 1 page per section
+  const totalPages = sections.length + 2; // Header + Sections + Signatures
 
   // State: Local Reference Data for inline creation
   const [localBuilders, setLocalBuilders] = useState(builders);
   const [localSites, setLocalSites] = useState(sites);
+  const [localPositions, setLocalPositions] = useState(positions);
 
   const [isAddingBuilder, setIsAddingBuilder] = useState(false);
   const [newBuilderName, setNewBuilderName] = useState('');
@@ -50,6 +56,10 @@ export default function NewInspectionForm({
   const [isAddingSite, setIsAddingSite] = useState(false);
   const [newSiteName, setNewSiteName] = useState('');
   const [isSavingSite, setIsSavingSite] = useState(false);
+
+  const [addingPositionIndex, setAddingPositionIndex] = useState<number | null>(null);
+  const [newPositionName, setNewPositionName] = useState('');
+  const [isSavingPosition, setIsSavingPosition] = useState(false);
 
   // Formatter for display
   const displayDate = new Date(initialDate || new Date()).toLocaleDateString('en-GB', {
@@ -73,6 +83,19 @@ export default function NewInspectionForm({
     return initial;
   });
 
+  // State: Signatures
+  const [signatures, setSignatures] = useState<Array<{ name: string; positionId: string; signatureData: string | null }>>(() => {
+    if (initialSignatures && initialSignatures.length > 0) {
+      return initialSignatures;
+    }
+    const profilePosition = positions.find((p: any) => p.name.toLowerCase() === profile?.job_title?.toLowerCase());
+    return [{
+      name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
+      positionId: profilePosition ? profilePosition.id : '',
+      signatureData: null
+    }];
+  });
+
   const handleHeaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === 'builderId') {
@@ -87,6 +110,14 @@ export default function NewInspectionForm({
       ...prev,
       [questionId]: { ...prev[questionId], [field]: value }
     }));
+  };
+
+  const handleSignatureChange = (index: number, field: string, value: any) => {
+    setSignatures(prev => {
+      const newSigs = [...prev];
+      newSigs[index] = { ...newSigs[index], [field]: value };
+      return newSigs;
+    });
   };
 
   const handleCreateBuilder = async () => {
@@ -129,6 +160,26 @@ export default function NewInspectionForm({
     }
   };
 
+  const handleCreatePosition = async () => {
+    if (!newPositionName.trim() || addingPositionIndex === null) return;
+    setIsSavingPosition(true);
+    try {
+      const res = await createPosition(newPositionName);
+      if (res.success && res.position) {
+        setLocalPositions(prev => [...prev, res.position]);
+        handleSignatureChange(addingPositionIndex, 'positionId', res.position.id);
+        setAddingPositionIndex(null);
+        setNewPositionName('');
+      } else {
+        setError(res.error || 'Failed to create position');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsSavingPosition(false);
+    }
+  };
+
   const autoSaveDraft = async () => {
     setIsSubmitting(true);
     setError(null);
@@ -140,6 +191,7 @@ export default function NewInspectionForm({
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
         responses,
+        signatures: signatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
         status: 'Draft'
       };
       const result = await saveInspection(submissionData);
@@ -177,6 +229,12 @@ export default function NewInspectionForm({
     }
     
     if (formRef.current && !formRef.current.reportValidity()) return;
+    
+    if (signatures.some(s => !s.name.trim() || !s.positionId || !s.signatureData)) {
+      setError('Please complete all names, positions, and drawings for all signatures.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -188,6 +246,7 @@ export default function NewInspectionForm({
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
         responses,
+        signatures: signatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
         status: 'Completed'
       };
 
@@ -454,9 +513,108 @@ export default function NewInspectionForm({
               </div>
             );
           })}
+
+        {/* 3. Signatures Section */}
+        {currentPage === totalPages - 1 && (
+          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6">Sign-off</h2>
+            
+            <div className="space-y-8 mb-8">
+              {signatures.map((sig, index) => (
+                <div key={index} className="p-6 bg-slate-50 border border-slate-100 rounded-2xl relative">
+                  {index > 0 && !isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setSignatures(prev => prev.filter((_, i) => i !== index))}
+                      className="absolute top-4 right-4 text-red-500 hover:text-red-700 font-semibold text-sm transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">Full Name</label>
+                      <input
+                        type="text"
+                        value={sig.name}
+                        onChange={(e) => handleSignatureChange(index, 'name', e.target.value)}
+                        placeholder="Enter full name..."
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
+                        required
+                        disabled={isReadOnly}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-semibold text-slate-700">Position</label>
+                        {!isReadOnly && addingPositionIndex !== index && (
+                          <button type="button" onClick={() => setAddingPositionIndex(index)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                            + Add New
+                          </button>
+                        )}
+                      </div>
+                      {addingPositionIndex === index ? (
+                        <div className="flex gap-2 animate-in fade-in zoom-in-95 duration-200">
+                          <input
+                            type="text"
+                            value={newPositionName}
+                            onChange={(e) => setNewPositionName(e.target.value)}
+                            placeholder="Position Title..."
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
+                            autoFocus
+                          />
+                          <button type="button" onClick={handleCreatePosition} disabled={isSavingPosition} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 shrink-0">
+                            {isSavingPosition ? '...' : 'Save'}
+                          </button>
+                          <button type="button" onClick={() => setAddingPositionIndex(null)} disabled={isSavingPosition} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors shrink-0">
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          value={sig.positionId}
+                          onChange={(e) => handleSignatureChange(index, 'positionId', e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700 text-sm"
+                          required
+                          disabled={isReadOnly}
+                        >
+                          <option value="" disabled>Select Position...</option>
+                          {localPositions.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Signature</label>
+                    <SignaturePad
+                      initialValue={sig.signatureData}
+                      onChange={(val) => handleSignatureChange(index, 'signatureData', val)}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => setSignatures(prev => [...prev, { name: '', positionId: '', signatureData: null }])}
+                className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 transition-all"
+              >
+                + Add Another Signature
+              </button>
+            )}
+          </div>
+        )}
         </fieldset>
 
-        {/* 3. Submit Area */}
+        {/* 4. Submit Area */}
         <div className="flex justify-between items-center gap-4 mt-2">
           <div className="flex items-center">
             {currentPage > 0 && (

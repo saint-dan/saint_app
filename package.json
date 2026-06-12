@@ -17,12 +17,14 @@
     "@vercel/speed-insights": "^2.0.0",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "react-signature-canvas": "^1.1.0-alpha.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",
     "@types/node": "latest",
     "@types/react": "19.2.14",
+    "@types/react-signature-canvas": "^1.0.7",
     "postcss": "latest",
     "supabase": "^2.106.0",
     "tailwindcss": "latest",
