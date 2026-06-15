@@ -1,5 +1,6 @@
 import React from 'react';
-import { Html, Head, Body, Container, Text, Section } from '@react-email/components';
+import { Html, Head, Body, Container, Text, Section, } from '@react-email/components';
+import { GLOBAL_EMAIL_SIGNATURE } from './emailConfig';
 
 interface InspectionReportEmailProps {
   inspectorName: string;
@@ -27,10 +28,8 @@ export default function InspectionReportEmail({
               Please find attached the completed Site Inspection Report for <strong>{siteName}</strong>, 
               conducted by {inspectorName} on {date}.
             </Text>
-            <Text style={text}>
-              Best regards,<br />
-              <strong>The Saint Flooring Team</strong>
-            </Text>
+            <br />
+            <div dangerouslySetInnerHTML={{ __html: GLOBAL_EMAIL_SIGNATURE }} />
           </Section>
         </Container>
       </Body>

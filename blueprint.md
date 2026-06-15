@@ -40,7 +40,8 @@
 ## External Integrations & Email Standards
 - **Email Strategy:** All outgoing emails are handled via **Zapier Webhooks** integrated with Microsoft Outlook. Do not implement direct SMTP or Nodemailer logic within Next.js.
 - **Webhook Payload Standard:** Standardize Zapier JSON payloads to strictly use: `email` (recipient), `subject`, `htmlBody` (the fully formatted HTML message), and `attachments` (an array of URLs, e.g., `[pdfUrl]`).
-- **Global Email Signature:** Always append the `GLOBAL_EMAIL_SIGNATURE` (imported from `src/lib/emailConfig.ts`) to the end of your constructed `htmlBody` string.
+- **Global Email Signature:** Always append the `GLOBAL_EMAIL_SIGNATURE` (imported from `src/components/emails/emailConfig.ts`) to the end of your constructed `htmlBody` string.
+- **Email Templates:** Store all email templates as React components in `src/components/emails/`. Use `@react-email/components` and convert them to HTML strings using `render()` before passing them into webhook payloads. This ensures templates are easily found and visually consistent.
 - **Environment Variables:** Never hardcode webhook URLs in code. Always use environment variables (e.g., `process.env.ZAPIER_WEBHOOK_URL_EMAILS`).
 
 ## Security

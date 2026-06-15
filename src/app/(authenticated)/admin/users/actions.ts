@@ -3,7 +3,9 @@
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { GLOBAL_EMAIL_SIGNATURE } from '@/lib/emailConfig';
+import React from 'react';
+import { render } from '@react-email/components';
+import InviteUserEmail from '@/components/emails/InviteUserEmail';
 
 // Security Helper: Verify the user requesting this is an Admin
 async function verifyAdmin() {
@@ -82,18 +84,13 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
 
     // 4. Send the email via Zapier Webhook
     const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://saint-app.com'; // Adjust to your actual domain
-    const htmlBody = `
-      <p>Hi ${data.firstName},</p>
-      <p>You have been invited to join the Saint App.</p>
-      <p>You can log in at <a href="${appUrl}">${appUrl}</a> using the following credentials:</p>
-      <ul>
-        <li><strong>Email:</strong> ${data.email}</li>
-        <li><strong>Temporary Password:</strong> ${tempPassword}</li>
-      </ul>
-      <p><strong>Important:</strong> Please update your password immediately after your first login.</p>
-      <br/>
-      ${GLOBAL_EMAIL_SIGNATURE}
-    `;
+    
+    const htmlBody = await render(React.createElement(InviteUserEmail, {
+      firstName: data.firstName,
+      email: data.email,
+      tempPassword,
+      appUrl
+    }));
 
     const webhookPayload = {
       email: data.email,

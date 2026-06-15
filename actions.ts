@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
-import { GLOBAL_EMAIL_SIGNATURE } from '@/lib/emailConfig';
+import React from 'react';
+import { render } from '@react-email/components';
+import InspectionReportEmail from '@/components/emails/InspectionReportEmail';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -183,11 +185,11 @@ export async function saveInspection(formData: {
       const subject = `Inspection Report - ${siteData?.name || 'N/A'}`;
 
       // Construct the HTML Email Body
-      const htmlBody = `
-        <p>Dear ${inspectorName},</p>
-        <p>Please find attached your submitted Site Inspection Report.</p>
-        ${GLOBAL_EMAIL_SIGNATURE}
-      `;
+      const htmlBody = await render(React.createElement(InspectionReportEmail, {
+        inspectorName,
+        siteName: siteData?.name || 'N/A',
+        date: displayDate
+      }));
 
       // Prepare the payload for Zapier
       const webhookPayload = {
