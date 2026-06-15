@@ -331,13 +331,13 @@ export default function NewInspectionForm({
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            {isReadOnly ? 'View Site Inspection' : initialInspectionId ? 'Resume Site Inspection' : 'New Site Inspection'}
+            Site Inspection
           </h1>
-        {isReadOnly && (
-          <p className="text-slate-500 mt-2">
-            Review the completed inspection details below.
-          </p>
-        )}
+          <div className="mt-3 flex items-center">
+            <span className={`px-3 py-1 font-bold text-xs rounded-lg border uppercase tracking-wider ${isReadOnly ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+              {isReadOnly ? 'Completed' : 'Draft'}
+            </span>
+          </div>
         </div>
         {!isReadOnly ? (
           <button 
