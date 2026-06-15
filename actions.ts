@@ -170,11 +170,11 @@ export async function saveInspection(formData: {
       const webhookPayload = {
         subject,
         inspectorName,
-        inspectorEmail: user.email || '',
+        email: user.email || '',
         siteName: siteData?.name || 'N/A',
         builderName: builderData?.name || 'N/A',
         date: displayDate,
-        pdfUrl: formData.pdfUrl || '',
+        attachments: formData.pdfUrl ? [formData.pdfUrl] : [],
         htmlBody
       };
 

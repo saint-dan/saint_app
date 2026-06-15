@@ -37,6 +37,12 @@
 - **TypeScript:** Configured with modern Next.js settings (`"moduleResolution": "bundler"`). Avoid generating TS files that rely on deprecated `node10` resolution. Always import database types from `src/types/database.types.ts` to ensure strict type safety.
 - **AI Instructions:** Write DRY (Don't Repeat Yourself) code, strictly type all arguments and return values, use modern ES6+ syntax, and do not make assumptions about missing database tables—ask first. ALWAYS read `src/types/database.types.ts` to understand the current database schema before writing queries or Supabase mutations.
 
+## External Integrations & Email Standards
+- **Email Strategy:** All outgoing emails are handled via **Zapier Webhooks** integrated with Microsoft Outlook. Do not implement direct SMTP or Nodemailer logic within Next.js.
+- **Webhook Payload Standard:** Standardize Zapier JSON payloads to strictly use: `email` (recipient), `subject`, `htmlBody` (the fully formatted HTML message), and `attachments` (an array of URLs, e.g., `[pdfUrl]`).
+- **Global Email Signature:** Always append the `GLOBAL_EMAIL_SIGNATURE` (imported from `src/lib/emailConfig.ts`) to the end of your constructed `htmlBody` string.
+- **Environment Variables:** Never hardcode webhook URLs in code. Always use environment variables (e.g., `process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL`).
+
 ## Security
 - **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, Database Passwords, or external Webhook URLs (e.g., Zapier) in code or workspace files.
 - **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. For external integrations, use specific variables like `process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL`. Locally, these are in `.env.local`. In production, they are configured in Vercel.

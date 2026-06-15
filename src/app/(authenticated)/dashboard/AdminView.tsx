@@ -21,8 +21,8 @@ export default async function AdminView({ profile }: { profile: UserProfile | nu
     .eq('status', 'Completed');
 
   return (
-    <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-8 sm:px-12">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Welcome back, {profile?.first_name || 'Admin'}!
@@ -31,7 +31,7 @@ export default async function AdminView({ profile }: { profile: UserProfile | nu
       </div>
       
       {/* Site Inspections Section */}
-      <div className="mb-8">
+      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-4">
           <h3 className="text-xl font-bold text-slate-900">Site Inspections</h3>
           <div className="flex items-center">

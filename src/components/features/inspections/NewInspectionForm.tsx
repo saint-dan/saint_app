@@ -308,7 +308,8 @@ export default function NewInspectionForm({
         />
       ).toBlob();
 
-      const fileName = `Saint_Inspection_${inspectionId || Date.now()}_${Date.now()}.pdf`;
+      const sanitizedSiteName = siteName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fileName = `Saint_Inspection_${sanitizedSiteName}_${Date.now()}.pdf`;
 
       const { error: uploadError } = await supabase.storage
         .from('inspection_reports')
@@ -392,7 +393,7 @@ export default function NewInspectionForm({
   return (
     <>
       {/* Page Title & Cancel Button */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between px-6 sm:px-10">
         <div>
           <Link href="/dashboard/inspections" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -486,7 +487,7 @@ export default function NewInspectionForm({
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex items-center gap-4 px-6 sm:px-10">
         <div className="flex-1 flex items-center gap-2">
           {Array.from({ length: totalPages }).map((_, i) => (
             <div key={i} className={`h-2 flex-1 rounded-full transition-colors ${i === currentPage ? 'bg-blue-600' : i < currentPage ? 'bg-blue-300' : 'bg-slate-200'}`} />
