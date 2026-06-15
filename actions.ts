@@ -164,16 +164,21 @@ export async function saveInspection(formData: {
         pdfUrl: formData.pdfUrl || ''
       };
 
-      const zapierResponse = await fetch('https://hooks.zapier.com/hooks/catch/21574922/438bgm4/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(webhookPayload),
-      });
+      const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL;
+      if (!zapierWebhookUrl) {
+        console.error('ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL environment variable is missing.');
+      } else {
+        const zapierResponse = await fetch(zapierWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(webhookPayload),
+        });
 
-      if (!zapierResponse.ok) {
-        console.error('Zapier Webhook Error:', await zapierResponse.text());
+        if (!zapierResponse.ok) {
+          console.error('Zapier Webhook Error:', await zapierResponse.text());
+        }
       }
     } catch (webhookError) {
       console.error('Failed to send payload to Zapier:', webhookError);
