@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
+import { GLOBAL_EMAIL_SIGNATURE } from '@/lib/emailConfig';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -156,14 +157,25 @@ export async function saveInspection(formData: {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
 
+      const subject = `Site Inspection - ${siteData?.name || 'N/A'}`;
+
+      // Construct the HTML Email Body
+      const htmlBody = `
+        <p>Dear ${inspectorName},</p>
+        <p>Please find attached your submitted Site Inspection Report.</p>
+        ${GLOBAL_EMAIL_SIGNATURE}
+      `;
+
       // Prepare the payload for Zapier
       const webhookPayload = {
+        subject,
         inspectorName,
         inspectorEmail: user.email || '',
         siteName: siteData?.name || 'N/A',
         builderName: builderData?.name || 'N/A',
         date: displayDate,
-        pdfUrl: formData.pdfUrl || ''
+        pdfUrl: formData.pdfUrl || '',
+        htmlBody
       };
 
       const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL;
