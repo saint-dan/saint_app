@@ -397,10 +397,15 @@ export default function NewInspectionForm({
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Site Inspection
           </h1>
-          <div className="mt-3 flex items-center">
+          <div className="mt-3 flex flex-col items-start gap-2">
             <span className={`px-3 py-1 font-bold text-xs rounded-lg border uppercase tracking-wider ${isReadOnly ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
               {isReadOnly ? 'Completed' : 'Draft'}
             </span>
+            {currentPage > 0 && headerData.builderId && headerData.siteId && (
+              <span className="text-sm font-semibold text-slate-600">
+                {localBuilders.find(b => b.id === headerData.builderId)?.name || 'N/A'} - {localSites.find(s => s.id === headerData.siteId)?.name || 'N/A'}
+              </span>
+            )}
           </div>
         </div>
         {!isReadOnly ? (
@@ -725,20 +730,25 @@ export default function NewInspectionForm({
                 if (!sig) return null;
 
                 return (
-                  <div key={index} className="p-6 bg-slate-50 border border-slate-100 rounded-2xl relative">
+                  <div key={index} className="p-6 bg-slate-50 border border-slate-100 rounded-2xl">
                     {signatures.length > 1 && !isReadOnly && (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const newSigs = signatures.filter((_, i) => i !== index);
-                          setSignatures(newSigs);
-                          setCurrentPage(prev => prev - 1);
-                          await autoSaveDraft(newSigs);
-                        }}
-                        className="absolute top-4 right-4 text-red-500 hover:text-red-700 font-semibold text-sm transition-colors"
-                      >
-                        Remove
-                      </button>
+                      <div className="flex justify-end mb-4">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const newSigs = signatures.filter((_, i) => i !== index);
+                            setSignatures(newSigs);
+                            setCurrentPage(prev => prev - 1);
+                            await autoSaveDraft(newSigs);
+                          }}
+                          className="text-red-500 hover:text-red-700 font-semibold text-sm transition-colors flex items-center gap-1"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove
+                        </button>
+                      </div>
                     )}
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
