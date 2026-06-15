@@ -102,15 +102,19 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
       attachments: []
     };
 
-    const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_GENERAL_EMAIL;
+    const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_EMAILS;
     if (zapierWebhookUrl) {
-      await fetch(zapierWebhookUrl, {
+      const zapierResponse = await fetch(zapierWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(webhookPayload),
       });
+
+      if (!zapierResponse.ok) {
+        console.error('Zapier Webhook Error:', await zapierResponse.text());
+      }
     } else {
-      console.warn('ZAPIER_WEBHOOK_URL_GENERAL_EMAIL is not set. Invite email was not sent.');
+      console.warn('ZAPIER_WEBHOOK_URL_EMAILS is not set. Invite email was not sent.');
     }
   }
 

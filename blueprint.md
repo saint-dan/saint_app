@@ -41,11 +41,11 @@
 - **Email Strategy:** All outgoing emails are handled via **Zapier Webhooks** integrated with Microsoft Outlook. Do not implement direct SMTP or Nodemailer logic within Next.js.
 - **Webhook Payload Standard:** Standardize Zapier JSON payloads to strictly use: `email` (recipient), `subject`, `htmlBody` (the fully formatted HTML message), and `attachments` (an array of URLs, e.g., `[pdfUrl]`).
 - **Global Email Signature:** Always append the `GLOBAL_EMAIL_SIGNATURE` (imported from `src/lib/emailConfig.ts`) to the end of your constructed `htmlBody` string.
-- **Environment Variables:** Never hardcode webhook URLs in code. Always use environment variables (e.g., `process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL`).
+- **Environment Variables:** Never hardcode webhook URLs in code. Always use environment variables (e.g., `process.env.ZAPIER_WEBHOOK_URL_EMAILS`).
 
 ## Security
 - **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, Database Passwords, or external Webhook URLs (e.g., Zapier) in code or workspace files.
-- **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. For external integrations, use specific variables like `process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL`. Locally, these are in `.env.local`. In production, they are configured in Vercel.
+- **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. For external integrations, use specific variables like `process.env.ZAPIER_WEBHOOK_URL_EMAILS`. Locally, these are in `.env.local`. In production, they are configured in Vercel.
 
 ## Local Development
 - **Starting the Server:** Open your terminal in the project root and run `npm run dev` (or `pnpm dev` / `yarn dev`).

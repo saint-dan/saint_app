@@ -201,9 +201,9 @@ export async function saveInspection(formData: {
         htmlBody
       };
 
-      const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL;
+      const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_EMAILS;
       if (!zapierWebhookUrl) {
-        console.error('ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL environment variable is missing.');
+        console.error('ZAPIER_WEBHOOK_URL_EMAILS environment variable is missing.');
       } else {
         const zapierResponse = await fetch(zapierWebhookUrl, {
           method: 'POST',
