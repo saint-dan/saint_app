@@ -32,6 +32,7 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newQuestionText, setNewQuestionText] = useState('');
   const [newResponseTypeId, setNewResponseTypeId] = useState(responseTypes[0]?.id || '');
+  const [newAllowPhotos, setNewAllowPhotos] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Delete Section Modal State
@@ -79,13 +80,14 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
     if (!newQuestionText.trim() || !newResponseTypeId) return;
     
     setIsSubmitting(true);
-    const result = await createInspectionQuestion(sectionId, newQuestionText.trim(), newResponseTypeId);
+    const result = await createInspectionQuestion(sectionId, newQuestionText.trim(), newResponseTypeId, newAllowPhotos);
     setIsSubmitting(false);
 
     if (result.success && result.question) {
       setQuestions([...questions, result.question]);
       setNewQuestionText('');
       setNewResponseTypeId(responseTypes[0]?.id || '');
+      setNewAllowPhotos(false);
       setIsAddModalOpen(false);
       router.refresh();
     } else {
@@ -138,10 +140,10 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to List
+            Back
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{sectionTitle}</h1>
-          <p className="text-slate-500 mt-1">Manage questions for this section. Drag to reorder.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Site Inspection Template</h1>
+          <h2 className="text-lg font-semibold text-slate-500 mt-1">Questions - {sectionTitle}</h2>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -238,6 +240,18 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
                     <option key={rt.id} value={rt.id}>{rt.name}</option>
                   ))}
                 </select>
+              </div>
+              <div className="mb-8 flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  id="allowPhotos"
+                  checked={newAllowPhotos}
+                  onChange={(e) => setNewAllowPhotos(e.target.checked)}
+                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                />
+                <label htmlFor="allowPhotos" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                  Allow photo uploads for this question
+                </label>
               </div>
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>

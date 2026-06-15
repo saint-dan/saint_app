@@ -46,15 +46,15 @@ export default async function InspectionsPage({
   // Decide which Supabase client to use. For Admins, we use the service_role client
   // to bypass RLS and fetch all inspector names for the filter dropdown.
   // This is safe as it's a Server Component and the key is not exposed to the client.
-  const queryClient = roleName === 'Admin' 
+  const queryClient = (roleName === 'Admin' 
     ? createAdminClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       )
-    : supabase;
+    : supabase) as unknown as ReturnType<typeof createAdminClient<Database>>;
 
   // Fetch inspections based on status with related table data
-  let inspectionQuery = queryClient
+  const inspectionQuery = queryClient
     .from('site_inspections')
     .select(`
       id,
@@ -63,19 +63,19 @@ export default async function InspectionsPage({
       status,
       pdf_url,
       inspector_id,
-      builders (name),
-      sites (name),
-      users (first_name, last_name)
+      builders(name),
+      sites(name),
+      users(first_name, last_name)
     `)
     .eq('status', status);
 
   // For non-admins, we still need to filter by their own ID.
   // The Admin query (using service_role) will fetch all, which is what we want.
-  if (roleName === 'Contracts Manager') {
-    inspectionQuery = inspectionQuery.eq('inspector_id', user.id);
-  }
+  const finalQuery = roleName === 'Contracts Manager' 
+    ? inspectionQuery.eq('inspector_id', user.id)
+    : inspectionQuery;
 
-  const { data: inspections } = await inspectionQuery.order('created_at', { ascending: false });
+  const { data: inspections } = await finalQuery.order('created_at', { ascending: false });
 
   // Helpers for extracting names from relational columns
   const getNestedName = (obj: any) => {

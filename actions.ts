@@ -332,7 +332,7 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
   return { success: true };
 }
 
-export async function createInspectionQuestion(sectionId: string, questionText: string, responseTypeId: string) {
+export async function createInspectionQuestion(sectionId: string, questionText: string, responseTypeId: string, allowPhotos: boolean = false) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -368,6 +368,7 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
       section_id: sectionId,
       question_text: questionText,
       response_type_id: responseTypeId,
+      allow_photos: allowPhotos,
       display_order: nextOrder,
       is_active: true
     })
