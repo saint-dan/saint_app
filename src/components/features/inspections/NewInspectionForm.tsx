@@ -470,9 +470,6 @@ export default function NewInspectionForm({
                 </>
               )}
             </button>
-            <Link href="/dashboard/inspections" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
-              Close
-            </Link>
           </div>
         )}
       </div>

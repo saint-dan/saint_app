@@ -121,12 +121,6 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Link 
-            href="/dashboard"
-            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all text-sm flex items-center gap-2 shadow-sm"
-          >
-            Back
-          </Link>
-          <Link 
             href="/dashboard/inspections/new"
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2"
           >
