@@ -12,9 +12,12 @@ interface InspectionsListProps {
   totalPages: number;
   currentSortField: string;
   currentSortOrder: string;
+  roleName?: string;
+  inspectors?: { id: string; name: string }[];
+  currentInspectorId?: string;
 }
 
-export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages, currentSortField, currentSortOrder }: InspectionsListProps) {
+export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages, currentSortField, currentSortOrder, roleName, inspectors = [], currentInspectorId = '' }: InspectionsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -37,6 +40,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     const params = new URLSearchParams(searchParams.toString());
     params.set('status', newStatus);
     params.delete('query'); // Clear search query when switching tabs
+    params.delete('inspectorId'); // Clear inspector filter when switching tabs
     params.set('page', '1'); // Reset to page 1
     params.delete('sortField'); // Reset to default sorts
     params.delete('sortOrder');
@@ -58,6 +62,17 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     } else {
       params.set('sortField', field);
       params.set('sortOrder', field === 'date' ? 'desc' : 'asc'); // Dates default to desc, text defaults to asc
+    }
+    params.set('page', '1');
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleInspectorFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (e.target.value) {
+      params.set('inspectorId', e.target.value);
+    } else {
+      params.delete('inspectorId');
     }
     params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
@@ -147,24 +162,39 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
           </button>
         </div>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="w-full md:w-auto flex items-center gap-2">
-          <div className="relative w-full md:w-72">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search builder, site..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
-            />
-          </div>
-          <button type="submit" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shrink-0">
-            Search
-          </button>
-        </form>
+        {/* Filters & Search */}
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
+          {roleName === 'Admin' && (
+            <select
+              value={currentInspectorId}
+              onChange={handleInspectorFilter}
+              className="w-full sm:w-48 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm text-slate-700 font-medium"
+            >
+              <option value="">All Inspectors</option>
+              {inspectors.map(inspector => (
+                <option key={inspector.id} value={inspector.id}>{inspector.name}</option>
+              ))}
+            </select>
+          )}
+
+          <form onSubmit={handleSearch} className="w-full sm:w-auto flex items-center gap-2">
+            <div className="relative w-full md:w-72">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search builder, site..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+              />
+            </div>
+            <button type="submit" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shrink-0">
+              Search
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Table */}

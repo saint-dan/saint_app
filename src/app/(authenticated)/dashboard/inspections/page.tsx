@@ -7,6 +7,8 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import InspectionsList from '@/components/features/inspections/InspectionsList';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { Database } from '@/types/database.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +31,7 @@ export default async function InspectionsPage({
   const page = parseInt((resolvedParams?.page as string) || '1', 10);
   const sortField = (resolvedParams?.sortField as string) || 'date';
   const sortOrder = (resolvedParams?.sortOrder as string) || 'desc';
+  const inspectorIdFilter = (resolvedParams?.inspectorId as string) || '';
 
   // Fetch user role to determine data access
   const { data: profile } = await supabase
@@ -40,8 +43,18 @@ export default async function InspectionsPage({
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
+  // Decide which Supabase client to use. For Admins, we use the service_role client
+  // to bypass RLS and fetch all inspector names for the filter dropdown.
+  // This is safe as it's a Server Component and the key is not exposed to the client.
+  const queryClient = roleName === 'Admin' 
+    ? createAdminClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+    : supabase;
+
   // Fetch inspections based on status with related table data
-  const baseQuery = supabase
+  let inspectionQuery = queryClient
     .from('site_inspections')
     .select(`
       id,
@@ -49,16 +62,20 @@ export default async function InspectionsPage({
       created_at,
       status,
       pdf_url,
+      inspector_id,
       builders (name),
       sites (name),
       users (first_name, last_name)
     `)
     .eq('status', status);
 
-  const { data: inspections } = await (roleName === 'Contracts Manager'
-    ? baseQuery.eq('inspector_id', user.id)
-    : baseQuery
-  ).order('created_at', { ascending: false });
+  // For non-admins, we still need to filter by their own ID.
+  // The Admin query (using service_role) will fetch all, which is what we want.
+  if (roleName === 'Contracts Manager') {
+    inspectionQuery = inspectionQuery.eq('inspector_id', user.id);
+  }
+
+  const { data: inspections } = await inspectionQuery.order('created_at', { ascending: false });
 
   // Helpers for extracting names from relational columns
   const getNestedName = (obj: any) => {
@@ -73,8 +90,23 @@ export default async function InspectionsPage({
      return `${obj.first_name || ''} ${obj.last_name || ''}`.trim();
   };
 
+  // Extract unique inspectors for the admin filter dropdown
+  const uniqueInspectorsMap = new Map<string, string>();
+  inspections?.forEach(i => {
+    if (i.users && i.inspector_id) {
+      uniqueInspectorsMap.set(i.inspector_id, getUserName(i.users));
+    }
+  });
+  const inspectorsList = Array.from(uniqueInspectorsMap.entries()).map(([id, name]) => ({ id, name }));
+  inspectorsList.sort((a, b) => a.name.localeCompare(b.name));
+
   // In-memory filter for the search query to handle relational columns easily
   let filteredInspections = inspections || [];
+  
+  if (inspectorIdFilter) {
+    filteredInspections = filteredInspections.filter(i => i.inspector_id === inspectorIdFilter);
+  }
+  
   if (query) {
     const lowerQuery = query.toLowerCase();
     filteredInspections = filteredInspections.filter(i => {
@@ -122,6 +154,9 @@ export default async function InspectionsPage({
         totalPages={totalPages}
         currentSortField={sortField}
         currentSortOrder={sortOrder}
+        roleName={roleName}
+        inspectors={inspectorsList}
+        currentInspectorId={inspectorIdFilter}
       />
     </div>
   );

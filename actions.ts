@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { Database } from '@/types/database.types';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -262,7 +264,22 @@ export async function deleteInspection(id: string) {
     return { success: false, error: 'User not authenticated' };
   }
 
-  const { error } = await supabase
+  // Check the user's role to see if they are an Admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  // Use the service_role client to bypass RLS if the user is an Admin
+  const deleteClient = roleName === 'Admin'
+    ? createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    : supabase;
+
+  const { error } = await deleteClient
     .from('site_inspections')
     .delete()
     .eq('id', id);
