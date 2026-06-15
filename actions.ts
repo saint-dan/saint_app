@@ -256,6 +256,82 @@ export async function createPosition(name: string) {
   return { success: true, position: data };
 }
 
+export async function createInspectionSection(title: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  // Check admin access
+  const { data: profile } = await supabase
+    .from('users')
+    .select('roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== 'Admin') {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // Find the highest current display_order
+  const { data: existing } = await adminClient
+    .from('inspection_sections')
+    .select('display_order')
+    .order('display_order', { ascending: false })
+    .limit(1);
+
+  const nextOrder = existing && existing.length > 0 ? existing[0].display_order + 1 : 1;
+
+  const { data, error } = await adminClient
+    .from('inspection_sections')
+    .insert({ title, display_order: nextOrder, is_active: true })
+    .select()
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Failed to create section: ' + error?.message };
+  }
+
+  revalidatePath('/dashboard/inspections/edit_form');
+  return { success: true, section: data };
+}
+
+export async function updateInspectionSectionOrders(updates: { id: string; display_order: number }[]) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: 'User not authenticated' };
+
+  // Check admin access
+  const { data: profile } = await supabase
+    .from('users')
+    .select('roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== 'Admin') {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // Perform updates in parallel
+  await Promise.all(updates.map(u => adminClient.from('inspection_sections').update({ display_order: u.display_order }).eq('id', u.id)));
+
+  revalidatePath('/dashboard/inspections/edit_form');
+  return { success: true };
+}
+
 export async function deleteInspection(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
