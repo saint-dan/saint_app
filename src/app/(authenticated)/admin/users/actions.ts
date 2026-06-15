@@ -56,22 +56,26 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
   await verifyAdmin();
   const supabaseAdmin = getAdminClient();
 
-  // 1. Generate a secure temporary password
-  const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase() + '1!';
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://saint-app.com'; // Adjust to your actual domain
 
-  // 2. Create the user in Supabase Auth (bypassing the default invite email)
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  // 1. Generate an invite link (Creates the user and returns a secure magic link)
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'invite',
     email: data.email,
-    password: tempPassword,
-    email_confirm: true // Auto-confirm their email so they can log in immediately
+    options: {
+      redirectTo: `${appUrl}/dashboard`
+    }
   });
   
-  if (authError) throw new Error('Failed to create user: ' + authError.message);
+  if (linkError) throw new Error('Failed to create user/invite link: ' + linkError.message);
 
-  if (authData?.user) {
-    // 3. Insert the initial profile into the public.users table
+  const authUser = linkData.user;
+  const actionLink = linkData.properties.action_link;
+
+  if (authUser) {
+    // 2. Insert the initial profile into the public.users table
     const { error: dbError } = await supabaseAdmin.from('users').insert({
-      id: authData.user.id,
+      id: authUser.id,
       email: data.email,
       first_name: data.firstName,
       last_name: data.lastName,
@@ -82,14 +86,11 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
 
     if (dbError) throw new Error('User invited, but failed to construct profile: ' + dbError.message);
 
-    // 4. Send the email via Zapier Webhook
-    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://saint-app.com'; // Adjust to your actual domain
+    // 3. Send the email via Zapier Webhook
     
     const htmlBody = await render(React.createElement(InviteUserEmail, {
       firstName: data.firstName,
-      email: data.email,
-      tempPassword,
-      appUrl
+      actionLink
     }));
 
     const webhookPayload = {
