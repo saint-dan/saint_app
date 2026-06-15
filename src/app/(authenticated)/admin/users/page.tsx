@@ -66,6 +66,9 @@ export default async function UsersPage() {
   // Fetch available roles for the invite modal
   const { data: roles } = await supabaseAdmin.from('roles').select('id, name').order('name');
 
+  // Fetch available locations for the invite modal
+  const { data: locations } = await supabaseAdmin.from('locations').select('id, name').eq('is_active', true).order('name');
+
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-6">
@@ -81,7 +84,7 @@ export default async function UsersPage() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Users</h1>
           </div>
           <div className="flex items-center gap-3 mt-4 sm:mt-0">
-            <InviteUserButton roles={roles || []} />
+            <InviteUserButton roles={roles || []} locations={locations || []} />
           </div>
         </div>
 

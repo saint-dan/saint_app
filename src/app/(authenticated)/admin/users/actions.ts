@@ -52,7 +52,7 @@ export async function updateUserStatus(userId: string, newStatus: 'Active' | 'Re
   revalidatePath('/admin/users');
 }
 
-export async function inviteAdminUser(data: { firstName: string; lastName: string; email: string; roleId: string }) {
+export async function inviteAdminUser(data: { firstName: string; lastName: string; email: string; phone?: string; roleId: string; primaryLocationId: string }) {
   await verifyAdmin();
   const supabaseAdmin = getAdminClient();
 
@@ -63,7 +63,7 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
     type: 'invite',
     email: data.email,
     options: {
-      redirectTo: `${appUrl}/dashboard`
+      redirectTo: `${appUrl}/auth/callback?next=/dashboard`
     }
   });
   
@@ -80,6 +80,8 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
       first_name: data.firstName,
       last_name: data.lastName,
       role_id: data.roleId,
+      primary_location_id: data.primaryLocationId,
+      phone: data.phone || null,
       status: 'Invited',
       force_password_reset: true
     });

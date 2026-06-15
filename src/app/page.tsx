@@ -171,7 +171,7 @@ export default function ContractorRegistration() {
 
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-      redirectTo: `${window.location.origin}/update-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
     });
 
     if (error) {

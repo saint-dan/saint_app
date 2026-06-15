@@ -17,14 +17,14 @@ export default function InviteUserEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={title}>Your Invitation to the Saint App</Text>
+            <Text style={title}>Invitation to the Saint App</Text>
           </Section>
           
           <Section style={body}>
             <Text style={text}>Hi {firstName},</Text>
             <Text style={text}>You have been invited to join the Saint App.</Text>
             <Text style={text}>
-              Please click the button below to securely accept your invitation, log in, and set up your password.
+              Please click the button below to accept your invitation and set up your password.
             </Text>
             <Section style={buttonContainer}>
               <Link href={actionLink} style={button}>Accept Invitation</Link>
