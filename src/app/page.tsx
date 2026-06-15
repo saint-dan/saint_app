@@ -194,12 +194,7 @@ export default function ContractorRegistration() {
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
             {isLoginMode ? '' : 'Registration'}
           </h1>
-          <p className="text-slate-500 font-medium text-sm sm:text-base">
-            {isLoginMode 
-              ? 'Welcome back. Please log in to your account.' 
-              : step === 1 ? 'Step 1 of 2: Let\'s get your basic details.' : 'Step 2 of 2: Professional & Tax Profile.'
-            }
-          </p>
+          
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
