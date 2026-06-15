@@ -209,7 +209,7 @@ export default function ContractorRegistration() {
                   value={formData.firstName}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="John"
+                  placeholder="First Name"
                   required={!isLoginMode && step === 1}
                 />
               </div>
@@ -222,7 +222,7 @@ export default function ContractorRegistration() {
                   value={formData.lastName}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="Doe"
+                  placeholder="Last Name"
                   required={!isLoginMode && step === 1}
                 />
               </div>
@@ -240,7 +240,7 @@ export default function ContractorRegistration() {
               value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-              placeholder="john.doe@example.com"
+              placeholder="Email"
                   required={isLoginMode || step === 1}
             />
           </div>
@@ -267,7 +267,7 @@ export default function ContractorRegistration() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                placeholder="••••••••"
+                placeholder="Password"
                     required={isLoginMode || step === 1}
               />
               <button
@@ -303,7 +303,7 @@ export default function ContractorRegistration() {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                  placeholder="07123 456789"
+                  placeholder="Mobile Number"
                   required={!isLoginMode && step === 1}
                 />
               </div>
