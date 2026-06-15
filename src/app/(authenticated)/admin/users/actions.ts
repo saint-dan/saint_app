@@ -56,21 +56,29 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
   await verifyAdmin();
   const supabaseAdmin = getAdminClient();
 
-  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://saint-app.com'; // Adjust to your actual domain
+  // Helper to dynamically get the correct URL based on the environment (Local vs Vercel)
+  const getSiteUrl = () => {
+    let url =
+      process?.env?.NEXT_PUBLIC_SITE_URL ??
+      process?.env?.NEXT_PUBLIC_VERCEL_URL ??
+      'http://localhost:3000';
+    url = url.includes('http') ? url : `https://${url}`;
+    url = url.endsWith('/') ? url.slice(0, -1) : url;
+    return url;
+  };
+  const appUrl = getSiteUrl();
 
   // 1. Generate an invite link (Creates the user and returns a secure magic link)
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
     type: 'invite',
-    email: data.email,
-    options: {
-      redirectTo: `${appUrl}/auth/callback?next=/dashboard`
-    }
+    email: data.email
   });
   
   if (linkError) throw new Error('Failed to create user/invite link: ' + linkError.message);
 
   const authUser = linkData.user;
-  const actionLink = linkData.properties.action_link;
+  const hashedToken = linkData.properties.hashed_token;
+  const actionLink = `${appUrl}/auth/confirm?token_hash=${hashedToken}&type=invite&next=/dashboard`;
 
   if (authUser) {
     // 2. Insert the initial profile into the public.users table

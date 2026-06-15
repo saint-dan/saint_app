@@ -47,7 +47,7 @@
 ## User Management & Invitation Flow
 - **Invite Process:** Admins invite new users from the Users dashboard. The backend uses the Supabase Admin `generateLink({ type: 'invite', ... })` API. This silently provisions the user account and generates a single-use "magic link".
 - **Email Delivery:** The magic link (`action_link`) is embedded into a React Email template (`InviteUserEmail.tsx`), compiled to HTML, and sent to the user via the established Zapier Webhook flow.
-- **Auth Callback:** When the user clicks the link, they are routed to `src/app/auth/callback/route.ts`. This API route securely exchanges the PKCE code for a session cookie and redirects the user to the application.
+- **Auth Callback:** When the user clicks the invite link, they are routed to `src/app/auth/confirm/route.ts` with a `token_hash` query parameter. This explicitly verifies the OTP token on the server and redirects the user to the application. (Standard client flows like password resets still use `/auth/callback` via PKCE `code`).
 - **Forced Password Reset:** Newly invited users are created with a `force_password_reset` boolean flag set to `true` in the database. The authenticated layout (`src/app/(authenticated)/layout.tsx`) checks this flag and automatically forces the user to the `/update-password` page until they establish a secure permanent password.
 
 ## Security
