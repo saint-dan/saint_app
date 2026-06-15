@@ -30,10 +30,10 @@ export default async function UpdatePasswordPage({
         <div className="mb-8 text-center">
           <img src="/logo.png" alt="Company Logo" className="mx-auto mb-6 h-12 sm:h-16 object-contain" />
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-            Update Password
+            Create Password
           </h1>
           <p className="text-slate-500 font-medium text-sm">
-            Please enter a new, secure password to continue using your account.
+            Please enter a new secure password.
           </p>
         </div>
 
