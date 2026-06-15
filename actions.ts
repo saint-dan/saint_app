@@ -179,7 +179,7 @@ export async function saveInspection(formData: {
       });
 
       // Cast to any to avoid strict type mismatch between @react-pdf/renderer and Resend
-      const pdfBuffer = (await renderToBuffer(pdfElement)) as any;
+      const pdfBuffer = (await renderToBuffer(pdfElement as any)) as any;
 
       await resend.emails.send({
         from: 'Saint App <onboarding@resend.dev>', // Resend's free-tier testing domain
