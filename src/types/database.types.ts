@@ -292,6 +292,7 @@ export type Database = {
           inspection_date: string
           inspector_id: string | null
           operatives_on_site: number | null
+          pdf_url: string | null
           site_id: string | null
           status: string | null
           supervisor_qualification: string | null
@@ -303,6 +304,7 @@ export type Database = {
           inspection_date?: string
           inspector_id?: string | null
           operatives_on_site?: number | null
+          pdf_url?: string | null
           site_id?: string | null
           status?: string | null
           supervisor_qualification?: string | null
@@ -314,6 +316,7 @@ export type Database = {
           inspection_date?: string
           inspector_id?: string | null
           operatives_on_site?: number | null
+          pdf_url?: string | null
           site_id?: string | null
           status?: string | null
           supervisor_qualification?: string | null
