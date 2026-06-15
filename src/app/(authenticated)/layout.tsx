@@ -21,6 +21,10 @@ export default async function AuthenticatedLayout({
     .eq('id', user.id)
     .single();
 
+  if (profile?.force_password_reset) {
+    redirect('/update-password');
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <TopNavbar email={user.email} profile={profile} />

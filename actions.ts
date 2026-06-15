@@ -46,6 +46,28 @@ export async function signup(formData: FormData) {
   redirect('/dashboard');
 }
 
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient();
+  const password = formData.get('password') as string;
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return redirect('/login?message=Not authenticated');
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({ password });
+  if (updateError) {
+    return redirect('/update-password?message=' + encodeURIComponent(updateError.message));
+  }
+
+  // Clear the force_password_reset flag now that they have set a secure password
+  await supabase.from('users').update({ force_password_reset: false }).eq('id', user.id);
+
+  revalidatePath('/', 'layout');
+  redirect('/dashboard');
+}
+
 export async function saveInspection(formData: {
   inspectionId?: string;
   builderId: string;

@@ -3,6 +3,7 @@
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { GLOBAL_EMAIL_SIGNATURE } from '@/lib/emailConfig';
 
 // Security Helper: Verify the user requesting this is an Admin
 async function verifyAdmin() {
@@ -53,23 +54,64 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
   await verifyAdmin();
   const supabaseAdmin = getAdminClient();
 
-  // 1. Invite user via Supabase Auth Admin API (Sends the invite email)
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email);
+  // 1. Generate a secure temporary password
+  const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase() + '1!';
+
+  // 2. Create the user in Supabase Auth (bypassing the default invite email)
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email: data.email,
+    password: tempPassword,
+    email_confirm: true // Auto-confirm their email so they can log in immediately
+  });
   
-  if (authError) throw new Error('Failed to invite user: ' + authError.message);
+  if (authError) throw new Error('Failed to create user: ' + authError.message);
 
   if (authData?.user) {
-    // 2. Insert the initial profile into the public.users table
+    // 3. Insert the initial profile into the public.users table
     const { error: dbError } = await supabaseAdmin.from('users').insert({
       id: authData.user.id,
       email: data.email,
       first_name: data.firstName,
       last_name: data.lastName,
       role_id: data.roleId,
-      status: 'Invited'
+      status: 'Invited',
+      force_password_reset: true
     });
 
     if (dbError) throw new Error('User invited, but failed to construct profile: ' + dbError.message);
+
+    // 4. Send the email via Zapier Webhook
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://saint-app.com'; // Adjust to your actual domain
+    const htmlBody = `
+      <p>Hi ${data.firstName},</p>
+      <p>You have been invited to join the Saint App.</p>
+      <p>You can log in at <a href="${appUrl}">${appUrl}</a> using the following credentials:</p>
+      <ul>
+        <li><strong>Email:</strong> ${data.email}</li>
+        <li><strong>Temporary Password:</strong> ${tempPassword}</li>
+      </ul>
+      <p><strong>Important:</strong> Please update your password immediately after your first login.</p>
+      <br/>
+      ${GLOBAL_EMAIL_SIGNATURE}
+    `;
+
+    const webhookPayload = {
+      email: data.email,
+      subject: 'Your Invitation to the Saint App',
+      htmlBody,
+      attachments: []
+    };
+
+    const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_GENERAL_EMAIL;
+    if (zapierWebhookUrl) {
+      await fetch(zapierWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(webhookPayload),
+      });
+    } else {
+      console.warn('ZAPIER_WEBHOOK_URL_GENERAL_EMAIL is not set. Invite email was not sent.');
+    }
   }
 
   revalidatePath('/admin/users');
