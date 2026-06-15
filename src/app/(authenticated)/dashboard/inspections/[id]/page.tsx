@@ -105,6 +105,7 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
         initialSignatures={initialSignatures}
         initialDate={inspection?.status === 'Completed' ? inspection?.inspection_date : undefined}
         isReadOnly={inspection?.status === 'Completed'}
+        pdfUrl={inspection?.pdf_url}
       />
     </div>
   );

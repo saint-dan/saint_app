@@ -3,9 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { renderToBuffer } from '@react-pdf/renderer';
-import React from 'react';
-import InspectionPDF from '@/components/features/inspections/InspectionPDF';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -55,6 +52,7 @@ export async function saveInspection(formData: {
   responses: Record<string, { isCompliant: boolean | null; comments: string; photoUrls: string[] }>;
   signatures: Array<{ name: string; positionId: string; signatureData: string }>;
   status: string;
+  pdfUrl?: string;
 }) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -65,7 +63,7 @@ export async function saveInspection(formData: {
 
   let currentInspectionId = formData.inspectionId;
 
-  const headerPayload = {
+  const headerPayload: any = {
       inspector_id: user.id,
       builder_id: formData.builderId || null,
       site_id: formData.siteId || null,
@@ -74,6 +72,10 @@ export async function saveInspection(formData: {
       status: formData.status,
       inspection_date: new Date().toISOString().split('T')[0]
   };
+
+  if (formData.pdfUrl) {
+    headerPayload.pdf_url = formData.pdfUrl;
+  }
 
   if (currentInspectionId) {
     const { error } = await supabase
@@ -130,7 +132,7 @@ export async function saveInspection(formData: {
     }
   }
 
-  // 4. Generate PDF and Send to Zapier Webhook if Completed
+  // 4. Send to Zapier Webhook if Completed
   if (formData.status === 'Completed') {
     try {
       const { data: profile } = await supabase.from('users').select('first_name, last_name').eq('id', user.id).single();
@@ -147,59 +149,10 @@ export async function saveInspection(formData: {
         siteData = data;
       }
 
-      const { data: sections } = await supabase.from('inspection_sections').select('*').order('display_order');
-      const { data: questions } = await supabase.from('inspection_questions').select('*, response_types(code)').order('display_order');
-      const { data: positions } = await supabase.from('positions').select('id, name');
-
       const inspectorName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
       const displayDate = new Date().toLocaleDateString('en-GB', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
-
-      const signaturesWithNames = formData.signatures.map(sig => ({
-        ...sig,
-        positionName: positions?.find(p => p.id === sig.positionId)?.name || 'Signee'
-      }));
-
-      const pdfElement = React.createElement(InspectionPDF, {
-        date: displayDate,
-        inspectorName: inspectorName,
-        builderName: builderData?.name || 'N/A',
-        siteName: siteData?.name || 'N/A',
-        operatives: formData.operativesOnSite || 0,
-        supervisor: formData.supervisorQualification || 'N/A',
-        sections: sections || [],
-        questions: questions || [],
-        responses: formData.responses,
-        signatures: signaturesWithNames
-      });
-
-      // Cast to any to avoid strict type mismatch between @react-pdf/renderer and Resend
-      const pdfBuffer = (await renderToBuffer(pdfElement as any)) as any;
-      const fileName = `Saint_Inspection_${currentInspectionId}_${Date.now()}.pdf`;
-
-      // Upload PDF to Supabase Storage
-      const { error: uploadError } = await supabase
-        .storage
-        .from('inspection_reports')
-        .upload(fileName, pdfBuffer, {
-          contentType: 'application/pdf',
-          upsert: true
-        });
-
-      let pdfUrl = '';
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('inspection_reports').getPublicUrl(fileName);
-        pdfUrl = urlData.publicUrl;
-
-        // Save the URL directly to the inspection record for instant retrieval later
-        await supabase
-          .from('site_inspections')
-          .update({ pdf_url: pdfUrl })
-          .eq('id', currentInspectionId);
-      } else {
-        console.error('Failed to upload PDF to Supabase:', uploadError);
-      }
 
       // Prepare the payload for Zapier
       const webhookPayload = {
@@ -208,7 +161,7 @@ export async function saveInspection(formData: {
         siteName: siteData?.name || 'N/A',
         builderName: builderData?.name || 'N/A',
         date: displayDate,
-        pdfUrl
+        pdfUrl: formData.pdfUrl || ''
       };
 
       const zapierResponse = await fetch('https://hooks.zapier.com/hooks/catch/21574922/438bgm4/', {

@@ -1,0 +1,16 @@
+{  
+  // Hide the repo from the Explorer sidebar  
+  "files.exclude": {  
+    "**/node-modules/**": true  
+  },  
+ 
+  // Exclude the repo from search results  
+  "search.exclude": {  
+    "**/node-modules/**": true  
+  },  
+ 
+  // Critical: Stop the file watcher from tracking the repo  
+  "files.watcherExclude": {  
+    "**/node-modules/**": true  
+  }  
+}  

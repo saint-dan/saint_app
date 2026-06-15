@@ -7,6 +7,8 @@ import { saveInspection, createBuilder, createSite, createPosition, deleteInspec
 import SignaturePad from '@/components/ui/SignaturePad';
 import PhotoUploader from '@/components/ui/PhotoUploader';
 import { createClient } from '@/utils/supabase/client';
+import { pdf } from '@react-pdf/renderer';
+import InspectionPDF from './InspectionPDF';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -279,6 +281,47 @@ export default function NewInspectionForm({
     setError(null);
 
     try {
+      let finalPdfUrl = null;
+      
+      // Generate and upload PDF entirely on the client to avoid server timeout/memory issues
+      const supabase = createClient();
+      
+      const builderName = localBuilders.find(b => b.id === headerData.builderId)?.name || 'N/A';
+      const siteName = localSites.find(s => s.id === headerData.siteId)?.name || 'N/A';
+      const sigsWithNames = signatures.map(sig => ({
+        ...sig,
+        positionName: localPositions.find(p => p.id === sig.positionId)?.name || 'Signee'
+      }));
+
+      const pdfBlob = await pdf(
+        <InspectionPDF
+          date={displayDate}
+          inspectorName={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()}
+          builderName={builderName}
+          siteName={siteName}
+          operatives={headerData.operativesOnSite || 0}
+          supervisor={headerData.supervisorQualification || 'N/A'}
+          sections={sections}
+          questions={questions}
+          responses={responses}
+          signatures={sigsWithNames}
+        />
+      ).toBlob();
+
+      const fileName = `Saint_Inspection_${inspectionId || Date.now()}_${Date.now()}.pdf`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('inspection_reports')
+        .upload(fileName, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
+
+      if (uploadError) throw new Error('Failed to upload PDF: ' + uploadError.message);
+
+      const { data: urlData } = supabase.storage.from('inspection_reports').getPublicUrl(fileName);
+      finalPdfUrl = urlData.publicUrl;
+
       const submissionData = {
         inspectionId: inspectionId || undefined,
         builderId: headerData.builderId,
@@ -287,7 +330,8 @@ export default function NewInspectionForm({
         supervisorQualification: headerData.supervisorQualification,
         responses,
         signatures: signatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
-        status: 'Completed'
+        status: 'Completed',
+        pdfUrl: finalPdfUrl
       };
 
       const result = await saveInspection(submissionData);
