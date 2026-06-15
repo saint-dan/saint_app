@@ -48,6 +48,7 @@ export default async function InspectionsPage({
       inspection_date,
       created_at,
       status,
+      pdf_url,
       builders (name),
       sites (name),
       users (first_name, last_name)

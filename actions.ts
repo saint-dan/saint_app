@@ -191,6 +191,12 @@ export async function saveInspection(formData: {
       if (!uploadError) {
         const { data: urlData } = supabase.storage.from('inspection_reports').getPublicUrl(fileName);
         pdfUrl = urlData.publicUrl;
+
+        // Save the URL directly to the inspection record for instant retrieval later
+        await supabase
+          .from('site_inspections')
+          .update({ pdf_url: pdfUrl })
+          .eq('id', currentInspectionId);
       } else {
         console.error('Failed to upload PDF to Supabase:', uploadError);
       }

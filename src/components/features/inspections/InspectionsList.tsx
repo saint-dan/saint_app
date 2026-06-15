@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { deleteInspection } from '../../../../actions';
 
 interface InspectionsListProps {
   initialInspections: any[];
@@ -21,8 +20,6 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
   const searchParams = useSearchParams();
   
   const [searchTerm, setSearchTerm] = useState(currentQuery);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [inspectionToDelete, setInspectionToDelete] = useState<string | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,19 +63,14 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const confirmDelete = async () => {
-    if (!inspectionToDelete) return;
+  const handleDownload = (e: React.MouseEvent, pdfUrl: string | null) => {
+    e.stopPropagation();
     
-    const id = inspectionToDelete;
-    setInspectionToDelete(null); // Hide modal immediately
-    setDeletingId(id);
-    
-    const result = await deleteInspection(id);
-    
-    if (!result.success) {
-      alert(result.error);
+    if (!pdfUrl) {
+      alert('PDF not found for this inspection. It may still be generating or was not saved correctly.');
+      return;
     }
-    setDeletingId(null);
+    window.open(pdfUrl, '_blank');
   };
 
   const formatDate = (dateString: string) => {
@@ -199,7 +191,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('inspector')}>
                   <div className="flex items-center gap-2">Inspector <SortIcon field="inspector" /></div>
                 </th>
-                <th className="px-6 py-5 text-right">Actions</th>
+                <th className="px-6 py-5 text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -229,23 +221,26 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                       {extractUserName(inspection.users)}
                     </td>
                     <td className="px-6 py-5 text-right whitespace-nowrap">
-                      <Link
-                        href={`/dashboard/inspections/${inspection.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:text-blue-800 hover:border-blue-200 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-all shadow-sm mr-2"
-                      >
-                        {currentStatus === 'Draft' ? 'Resume' : 'View'}
-                      </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setInspectionToDelete(inspection.id);
-                        }}
-                        disabled={deletingId === inspection.id}
-                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-red-600 hover:text-red-800 hover:border-red-200 hover:bg-red-50 font-semibold rounded-xl text-sm transition-all shadow-sm disabled:opacity-50"
-                      >
-                        {deletingId === inspection.id ? 'Deleting...' : 'Delete'}
-                      </button>
+                      {currentStatus === 'Draft' ? (
+                        <Link
+                          href={`/dashboard/inspections/${inspection.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:text-blue-800 hover:border-blue-200 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-all shadow-sm"
+                        >
+                          Resume
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => handleDownload(e, inspection.pdf_url)}
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 text-blue-700 hover:bg-blue-100 hover:border-blue-200 font-semibold rounded-xl text-sm transition-all shadow-sm disabled:opacity-50"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                          </svg>
+                          Download
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -279,46 +274,6 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
           </div>
         )}
       </div>
-
-      {/* Custom Delete Confirmation Modal */}
-      {inspectionToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-          <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
-            onClick={() => setInspectionToDelete(null)}
-          />
-          
-          <div className="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-6 shadow-inner border border-red-100">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2 tracking-tight">Delete Inspection?</h3>
-              <p className="text-slate-500 font-medium mb-8">
-                Are you sure you want to delete this inspection? This action cannot be undone and will permanently remove the data.
-              </p>
-              <div className="flex w-full gap-3">
-                <button
-                  type="button"
-                  onClick={() => setInspectionToDelete(null)}
-                  className="flex-1 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-xl transition-colors shadow-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmDelete}
-                  className="flex-1 py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

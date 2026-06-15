@@ -3,11 +3,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { saveInspection, createBuilder, createSite, createPosition } from '../../../../actions';
+import { saveInspection, createBuilder, createSite, createPosition, deleteInspection } from '../../../../actions';
 import SignaturePad from '@/components/ui/SignaturePad';
 import PhotoUploader from '@/components/ui/PhotoUploader';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import InspectionPDF from './InspectionPDF';
+import { createClient } from '@/utils/supabase/client';
 
 interface NewInspectionFormProps {
   profile: any;
@@ -22,6 +21,7 @@ interface NewInspectionFormProps {
   initialSignatures?: any[];
   isReadOnly?: boolean;
   initialDate?: string;
+  pdfUrl?: string | null;
 }
 
 export default function NewInspectionForm({
@@ -36,7 +36,8 @@ export default function NewInspectionForm({
   initialResponses,
   initialSignatures,
   isReadOnly = false,
-  initialDate
+  initialDate,
+  pdfUrl
 }: NewInspectionFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,11 +48,10 @@ export default function NewInspectionForm({
   const [inspectionId, setInspectionId] = useState<string | null>(initialInspectionId || null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Prevent Next.js hydration mismatch for the PDF Download button
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // State: Local Reference Data for inline creation
   const [localBuilders, setLocalBuilders] = useState(builders);
@@ -305,21 +305,41 @@ export default function NewInspectionForm({
     }
   };
 
-  // Prepare data for the PDF
-  const pdfProps = {
-    date: displayDate,
-    inspectorName: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
-    builderName: localBuilders.find(b => b.id === headerData.builderId)?.name || 'N/A',
-    siteName: localSites.find(s => s.id === headerData.siteId)?.name || 'N/A',
-    operatives: headerData.operativesOnSite || 0,
-    supervisor: headerData.supervisorQualification || 'N/A',
-    sections,
-    questions,
-    responses,
-    signatures: signatures.map(sig => ({
-      ...sig,
-      positionName: localPositions.find(p => p.id === sig.positionId)?.name || 'Signee'
-    }))
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    const targetUrl = pdfUrl || initialHeaderData?.pdfUrl || initialHeaderData?.pdf_url;
+    if (targetUrl) {
+      window.open(targetUrl, '_blank');
+      setIsDownloadingPdf(false);
+      return;
+    }
+    
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.from('site_inspections').select('pdf_url').eq('id', inspectionId).single();
+      if (!error && data?.pdf_url) {
+        window.open(data.pdf_url, '_blank');
+      } else {
+        alert('PDF not found for this inspection. It may still be generating or was not saved correctly.');
+      }
+    } catch (err) {
+      alert('Failed to retrieve PDF.');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!inspectionId) return;
+    setIsDeleting(true);
+    setShowDeleteConfirm(false);
+    const result = await deleteInspection(inspectionId);
+    if (result.success) {
+      router.push('/dashboard/inspections');
+    } else {
+      setError(result.error || 'Failed to delete inspection');
+      setIsDeleting(false);
+    }
   };
 
   // Dynamically filter available sites based on the selected builder
@@ -340,43 +360,72 @@ export default function NewInspectionForm({
           </div>
         </div>
         {!isReadOnly ? (
-          <button 
-            type="button"
-            disabled={isSubmitting}
-            onClick={async () => {
-              if (headerData.builderId) await autoSaveDraft(undefined, 'draft');
-              router.push('/dashboard/inspections');
-            }}
-            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2 disabled:opacity-50"
-          >
-            {loadingAction === 'draft' ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Saving...
-              </>
-            ) : 'Save Draft & Exit'}
-          </button>
+          <div className="flex flex-wrap items-center gap-3 justify-end mt-4 sm:mt-0">
+            {inspectionId && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isSubmitting || isDeleting}
+                className="px-4 py-2 bg-white border border-red-200 text-red-600 font-semibold rounded-xl hover:bg-red-50 hover:border-red-300 transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                Delete
+              </button>
+            )}
+            <button 
+              type="button"
+              disabled={isSubmitting || isDeleting}
+              onClick={async () => {
+                if (headerData.builderId) await autoSaveDraft(undefined, 'draft');
+                router.push('/dashboard/inspections');
+              }}
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
+            >
+              {loadingAction === 'draft' ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : 'Save Draft & Exit'}
+            </button>
+          </div>
         ) : (
           <div className="flex flex-wrap items-center gap-3 justify-end mt-4 sm:mt-0">
-            {isClient && (
-              <PDFDownloadLink
-                document={<InspectionPDF {...pdfProps} />}
-                fileName={`Saint_Inspection_${displayDate.replace(/\s+/g, '_')}.pdf`}
-                className="px-4 py-2 bg-blue-50 border border-blue-100 text-blue-700 font-semibold rounded-xl hover:bg-blue-100 hover:border-blue-200 transition-all text-sm flex items-center gap-2 shadow-sm"
+            {inspectionId && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isDownloadingPdf || isDeleting}
+                className="px-4 py-2 bg-white border border-red-200 text-red-600 font-semibold rounded-xl hover:bg-red-50 hover:border-red-300 transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
               >
-                {({ loading }: any) => (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    {loading ? 'Generating...' : 'Download PDF'}
-                  </>
-                )}
-              </PDFDownloadLink>
+                Delete
+              </button>
             )}
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-4 py-2 bg-blue-50 border border-blue-100 text-blue-700 font-semibold rounded-xl hover:bg-blue-100 hover:border-blue-200 transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
+            >
+              {isDownloadingPdf ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                  Download
+                </>
+              )}
+            </button>
             <Link href="/dashboard/inspections" className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
               Close
             </Link>
@@ -814,6 +863,46 @@ export default function NewInspectionForm({
           </div>
           </div>
       </form>
+
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+          
+          <div className="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-6 shadow-inner border border-red-100">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2 tracking-tight">Delete Inspection?</h3>
+              <p className="text-slate-500 font-medium mb-8">
+                Are you sure you want to delete this inspection? This action cannot be undone and will permanently remove the data.
+              </p>
+              <div className="flex w-full gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-xl transition-colors shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="flex-1 py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
