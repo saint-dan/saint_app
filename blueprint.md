@@ -8,7 +8,6 @@
 ## Current Status & Active Milestones
 - **Current Phase:** Admin Workflows & PDF Generation.
 - **Recently Completed:** Photo Evidence Uploads (with browser-based compression & fullscreen viewer), Dynamic DB-driven Checklist Response Types, Digital Signature Capture with dynamic signees, Real Dashboard Metrics, View/Resume Inspections List, Custom UI Modals, 1200px Layout Standardization.
-- **Next Up:** (Update this regularly) Admin workflow to view and verify pending Subcontractors, and generating PDF reports for completed Site Inspections.
 
 ## Directory Map
 ```text
@@ -19,7 +18,7 @@
 └── src/
     ├── app/              # Next.js App Router (pages, layouts, API routes)
     ├── components/       # Reusable UI and functional components
-    │   ├── features/     # Feature-specific components (e.g., SubcontractorForm)
+    │   ├── features/     # Feature-specific components 
     │   └── ui/           # Generic/Atomic UI components (buttons, inputs)
     ├── lib/              # Shared libraries, configurations, and helpers
     ├── types/            # Global TypeScript definitions

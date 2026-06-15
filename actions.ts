@@ -3,10 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { Resend } from 'resend';
 import { renderToBuffer } from '@react-pdf/renderer';
 import React from 'react';
-import InspectionReportEmail from '@/components/emails/InspectionReportEmail';
 import InspectionPDF from '@/components/features/inspections/InspectionPDF';
 
 export async function login(formData: FormData) {
@@ -132,11 +130,9 @@ export async function saveInspection(formData: {
     }
   }
 
-  // 4. Generate PDF and Send Email if Completed
+  // 4. Generate PDF and Send to Zapier Webhook if Completed
   if (formData.status === 'Completed') {
     try {
-      const resend = new Resend(process.env.RESEND_API_KEY!);
-      
       const { data: profile } = await supabase.from('users').select('first_name, last_name').eq('id', user.id).single();
       
       let builderData = null;
@@ -180,25 +176,48 @@ export async function saveInspection(formData: {
 
       // Cast to any to avoid strict type mismatch between @react-pdf/renderer and Resend
       const pdfBuffer = (await renderToBuffer(pdfElement as any)) as any;
+      const fileName = `Saint_Inspection_${currentInspectionId}_${Date.now()}.pdf`;
 
-      await resend.emails.send({
-        from: 'Saint App <onboarding@resend.dev>', // Resend's free-tier testing domain
-        to: user.email!, // On the free tier, this MUST be the email address you registered your Resend account with!
-        subject: `Completed Site Inspection: ${siteData?.name || 'N/A'}`,
-        react: React.createElement(InspectionReportEmail, {
-          inspectorName,
-          siteName: siteData?.name || 'N/A',
-          date: displayDate,
-        }),
-        attachments: [
-          {
-            filename: `Saint_Inspection_${displayDate.replace(/\s+/g, '_')}.pdf`,
-            content: pdfBuffer,
-          },
-        ],
+      // Upload PDF to Supabase Storage
+      const { error: uploadError } = await supabase
+        .storage
+        .from('inspection_reports')
+        .upload(fileName, pdfBuffer, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
+
+      let pdfUrl = '';
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage.from('inspection_reports').getPublicUrl(fileName);
+        pdfUrl = urlData.publicUrl;
+      } else {
+        console.error('Failed to upload PDF to Supabase:', uploadError);
+      }
+
+      // Prepare the payload for Zapier
+      const webhookPayload = {
+        inspectorName,
+        inspectorEmail: user.email || '',
+        siteName: siteData?.name || 'N/A',
+        builderName: builderData?.name || 'N/A',
+        date: displayDate,
+        pdfUrl
+      };
+
+      const zapierResponse = await fetch('https://hooks.zapier.com/hooks/catch/21574922/438bgm4/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(webhookPayload),
       });
-    } catch (emailError) {
-      console.error('Failed to send PDF email:', emailError);
+
+      if (!zapierResponse.ok) {
+        console.error('Zapier Webhook Error:', await zapierResponse.text());
+      }
+    } catch (webhookError) {
+      console.error('Failed to send payload to Zapier:', webhookError);
     }
   }
 
