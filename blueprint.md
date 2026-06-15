@@ -44,6 +44,12 @@
 - **Email Templates:** Store all email templates as React components in `src/components/emails/`. Use `@react-email/components` and convert them to HTML strings using `render()` before passing them into webhook payloads. This ensures templates are easily found and visually consistent.
 - **Environment Variables:** Never hardcode webhook URLs in code. Always use environment variables (e.g., `process.env.ZAPIER_WEBHOOK_URL_EMAILS`).
 
+## User Management & Invitation Flow
+- **Invite Process:** Admins invite new users from the Users dashboard. The backend uses the Supabase Admin `generateLink({ type: 'invite', ... })` API. This silently provisions the user account and generates a single-use "magic link".
+- **Email Delivery:** The magic link (`action_link`) is embedded into a React Email template (`InviteUserEmail.tsx`), compiled to HTML, and sent to the user via the established Zapier Webhook flow.
+- **Auth Callback:** When the user clicks the link, they are routed to `src/app/auth/callback/route.ts`. This API route securely exchanges the PKCE code for a session cookie and redirects the user to the application.
+- **Forced Password Reset:** Newly invited users are created with a `force_password_reset` boolean flag set to `true` in the database. The authenticated layout (`src/app/(authenticated)/layout.tsx`) checks this flag and automatically forces the user to the `/update-password` page until they establish a secure permanent password.
+
 ## Security
 - **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, Database Passwords, or external Webhook URLs (e.g., Zapier) in code or workspace files.
 - **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. For external integrations, use specific variables like `process.env.ZAPIER_WEBHOOK_URL_EMAILS`. Locally, these are in `.env.local`. In production, they are configured in Vercel.
