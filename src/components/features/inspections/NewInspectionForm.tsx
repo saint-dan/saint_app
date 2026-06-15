@@ -495,7 +495,7 @@ export default function NewInspectionForm({
                   value={headerData.siteId}
                   onChange={handleHeaderChange}
                   disabled={!headerData.builderId}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700 ${!headerData.builderId ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required
                 >
                   <option value="" disabled>Select a Site</option>
