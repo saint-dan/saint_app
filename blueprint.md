@@ -7,7 +7,7 @@
 
 ## Current Status & Active Milestones
 - **Current Phase:** Admin Workflows & PDF Generation.
-- **Recently Completed:** Photo Evidence Uploads (with browser-based compression & fullscreen viewer), Dynamic DB-driven Checklist Response Types, Digital Signature Capture with dynamic signees, Real Dashboard Metrics, View/Resume Inspections List, Custom UI Modals, 1200px Layout Standardization.
+- **Recently Completed:** Zapier Email Webhook Integration (Outlook sending), Photo Evidence Uploads (with browser-based compression & fullscreen viewer), Dynamic DB-driven Checklist Response Types, Digital Signature Capture with dynamic signees, Real Dashboard Metrics, View/Resume Inspections List, Custom UI Modals, 1200px Layout Standardization.
 
 ## Directory Map
 ```text
@@ -38,8 +38,8 @@
 - **AI Instructions:** Write DRY (Don't Repeat Yourself) code, strictly type all arguments and return values, use modern ES6+ syntax, and do not make assumptions about missing database tables—ask first. ALWAYS read `src/types/database.types.ts` to understand the current database schema before writing queries or Supabase mutations.
 
 ## Security
-- **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, or Database Passwords in code or workspace files.
-- **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. Locally, these are in `.env.local`. In production, they are configured in Vercel.
+- **No Hardcoded Secrets:** NEVER hardcode Supabase URLs, Anon Keys, Database Passwords, or external Webhook URLs (e.g., Zapier) in code or workspace files.
+- **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. For external integrations, use specific variables like `process.env.ZAPIER_WEBHOOK_URL_NEW_INSPECTION_EMAIL`. Locally, these are in `.env.local`. In production, they are configured in Vercel.
 
 ## Local Development
 - **Starting the Server:** Open your terminal in the project root and run `npm run dev` (or `pnpm dev` / `yarn dev`).
