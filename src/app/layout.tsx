@@ -13,12 +13,12 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Contractor App",
-  description: "Premium Contractor Management",
+  title: "Saint App", // Change this to your desired title
+  description: "Saint Group",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Contractor App",
+    title: "Saint App",
   },
   formatDetection: {
     telephone: false,

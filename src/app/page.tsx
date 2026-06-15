@@ -192,7 +192,7 @@ export default function ContractorRegistration() {
 
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
-            {isLoginMode ? 'Login' : 'Registration'}
+            {isLoginMode ? '' : 'Registration'}
           </h1>
           <p className="text-slate-500 font-medium text-sm sm:text-base">
             {isLoginMode 
