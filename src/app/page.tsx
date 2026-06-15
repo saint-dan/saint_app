@@ -186,8 +186,13 @@ export default function ContractorRegistration() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-4 sm:p-8">
       <div className="max-w-2xl w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 transition-all duration-300">
         <div className="mb-10 text-center">
+          {/* Company Logo - Ensure you have a logo.png in your public directory */}
+          {/* For better optimization, consider using the Next.js Image component: import Image from 'next/image'; <Image src="/logo.png" alt="Company Logo" width={150} height={50} className="mx-auto mb-6" /> */}
+          <img src="/logo.png" alt="Company Logo" className="mx-auto mb-6 h-12 sm:h-16 object-contain" />
+
+
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
-            {isLoginMode ? 'Contractor Login' : 'Contractor Registration'}
+            {isLoginMode ? 'Login' : 'Registration'}
           </h1>
           <p className="text-slate-500 font-medium text-sm sm:text-base">
             {isLoginMode 
