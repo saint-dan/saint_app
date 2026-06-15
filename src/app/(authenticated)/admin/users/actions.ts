@@ -48,3 +48,29 @@ export async function updateUserStatus(userId: string, newStatus: 'Active' | 'Re
   // Instantly revalidate the table data to trigger an automatic UI update
   revalidatePath('/admin/users');
 }
+
+export async function inviteAdminUser(data: { firstName: string; lastName: string; email: string; roleId: string }) {
+  await verifyAdmin();
+  const supabaseAdmin = getAdminClient();
+
+  // 1. Invite user via Supabase Auth Admin API (Sends the invite email)
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email);
+  
+  if (authError) throw new Error('Failed to invite user: ' + authError.message);
+
+  if (authData?.user) {
+    // 2. Insert the initial profile into the public.users table
+    const { error: dbError } = await supabaseAdmin.from('users').insert({
+      id: authData.user.id,
+      email: data.email,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      role_id: data.roleId,
+      status: 'Invited'
+    });
+
+    if (dbError) throw new Error('User invited, but failed to construct profile: ' + dbError.message);
+  }
+
+  revalidatePath('/admin/users');
+}

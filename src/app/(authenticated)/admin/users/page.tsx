@@ -4,6 +4,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import UsersTable from './UsersTable';
+import InviteUserButton from './InviteUserButton';
 
 export type RoleData = { name: string } | { name: string }[] | null | undefined;
 
@@ -62,35 +63,32 @@ export default async function UsersPage() {
 
   const users = rawUsers as UserRow[] | null;
 
+  // Fetch available roles for the invite modal
+  const { data: roles } = await supabaseAdmin.from('roles').select('id, name').order('name');
+
   return (
-    <div className="flex-1 w-full bg-slate-50 min-h-screen">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
-        
-        {/* Breadcrumb / Back Link */}
-        <div className="mb-6">
-          <Link 
-            href="/dashboard" 
-            className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
-            Back to Dashboard
-          </Link>
+    <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <Link href="/dashboard" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Dashboard
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Users</h1>
+          </div>
+          <div className="flex items-center gap-3 mt-4 sm:mt-0">
+            <InviteUserButton roles={roles || []} />
+          </div>
         </div>
 
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          {/* Header */}
-          <div className="p-8 sm:px-10 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Users</h1>
-              <p className="text-slate-500 font-medium mt-2">Manage all registered users.</p>
-            </div>
-          </div>
-
           <UsersTable users={users} />
         </div>
-      </main>
+      </div>
     </div>
   );
 }
