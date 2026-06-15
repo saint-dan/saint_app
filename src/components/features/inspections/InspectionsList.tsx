@@ -168,7 +168,11 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                 </tr>
               ) : (
                 initialInspections.map((inspection) => (
-                  <tr key={inspection.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr 
+                    key={inspection.id} 
+                    onClick={() => router.push(`/dashboard/inspections/${inspection.id}`)}
+                    className="hover:bg-blue-50/40 transition-colors group cursor-pointer"
+                  >
                     <td className="px-6 py-5 text-sm font-semibold text-slate-900 whitespace-nowrap">
                       {formatDate(inspection.inspection_date)}
                     </td>
@@ -184,12 +188,16 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                     <td className="px-6 py-5 text-right whitespace-nowrap">
                       <Link
                         href={`/dashboard/inspections/${inspection.id}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:text-blue-800 hover:border-blue-200 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-all shadow-sm mr-2"
                       >
                         {currentStatus === 'Draft' ? 'Resume' : 'View'}
                       </Link>
                       <button
-                        onClick={() => setInspectionToDelete(inspection.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInspectionToDelete(inspection.id);
+                        }}
                         disabled={deletingId === inspection.id}
                         className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-red-600 hover:text-red-800 hover:border-red-200 hover:bg-red-50 font-semibold rounded-xl text-sm transition-all shadow-sm disabled:opacity-50"
                       >
