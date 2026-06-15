@@ -332,6 +332,138 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
   return { success: true };
 }
 
+export async function createInspectionQuestion(sectionId: string, questionText: string, responseTypeId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: 'User not authenticated' };
+
+  // Check admin access
+  const { data: profile } = await supabase
+    .from('users')
+    .select('roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // Find highest display_order for this section
+  const { data: existing } = await adminClient
+    .from('inspection_questions')
+    .select('display_order')
+    .eq('section_id', sectionId)
+    .order('display_order', { ascending: false })
+    .limit(1);
+
+  const nextOrder = existing && existing.length > 0 ? existing[0].display_order + 1 : 1;
+
+  const { data, error } = await adminClient
+    .from('inspection_questions')
+    .insert({
+      section_id: sectionId,
+      question_text: questionText,
+      response_type_id: responseTypeId,
+      display_order: nextOrder,
+      is_active: true
+    })
+    .select(`
+      id,
+      question_text,
+      display_order,
+      response_type_id,
+      response_types (name)
+    `)
+    .single();
+
+  if (error || !data) return { success: false, error: 'Failed to create question: ' + error?.message };
+
+  revalidatePath(`/dashboard/inspections/edit_form/${sectionId}`);
+  return { success: true, question: data };
+}
+
+export async function updateInspectionQuestionOrders(updates: { id: string; display_order: number }[], sectionId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: 'User not authenticated' };
+
+  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  await Promise.all(updates.map(u => adminClient.from('inspection_questions').update({ display_order: u.display_order }).eq('id', u.id)));
+
+  revalidatePath(`/dashboard/inspections/edit_form/${sectionId}`);
+  return { success: true };
+}
+
+export async function deleteInspectionSection(sectionId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: 'User not authenticated' };
+
+  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // We use soft-delete (is_active = false) to prevent Foreign Key constraint errors 
+  // on historical inspection responses that map to questions within this section.
+  const { error } = await adminClient
+    .from('inspection_sections')
+    .update({ is_active: false })
+    .eq('id', sectionId);
+
+  if (error) {
+    return { success: false, error: 'Failed to delete section: ' + error.message };
+  }
+
+  revalidatePath('/dashboard/inspections/edit_form');
+  return { success: true };
+}
+
+export async function deleteInspectionQuestion(questionId: string, sectionId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: 'User not authenticated' };
+
+  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // We use soft-delete (is_active = false) to prevent Foreign Key constraint errors 
+  // on historical inspection responses that map to this question.
+  const { error } = await adminClient
+    .from('inspection_questions')
+    .update({ is_active: false })
+    .eq('id', questionId);
+
+  if (error) {
+    return { success: false, error: 'Failed to delete question: ' + error.message };
+  }
+
+  revalidatePath(`/dashboard/inspections/edit_form/${sectionId}`);
+  return { success: true };
+}
+
 export async function deleteInspection(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

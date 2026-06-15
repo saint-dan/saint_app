@@ -135,9 +135,9 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
               </div>
 
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 truncate">{section.title}</h3>
-              </div>
+              <Link href={`/dashboard/inspections/edit_form/${section.id}`} className="flex-1 min-w-0 block">
+                <h3 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{section.title}</h3>
+              </Link>
 
               {/* Count Badge */}
               <div className="shrink-0 px-3 py-1 bg-slate-50 text-slate-500 rounded-lg text-xs font-bold border border-slate-100">
