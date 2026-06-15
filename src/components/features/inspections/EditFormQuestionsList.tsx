@@ -138,7 +138,7 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Sections
+            Back to List
           </Link>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{sectionTitle}</h1>
           <p className="text-slate-500 mt-1">Manage questions for this section. Drag to reorder.</p>
@@ -188,7 +188,7 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 truncate">{question.question_text}</h3>
+                <h3 className="font-medium text-slate-900 truncate">{question.question_text}</h3>
               </div>
 
               {/* Badge */}

@@ -88,16 +88,16 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Edit Form Template</h1>
+          <Link href="/dashboard/inspections" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to List
+          </Link>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Edit Inspection Form</h1>
           <p className="text-slate-500 mt-1">Manage sections and questions. Drag to reorder.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link 
-            href="/dashboard/inspections"
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl shadow-sm transition-colors text-sm"
-          >
-            Back
-          </Link>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2"
