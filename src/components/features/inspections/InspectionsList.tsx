@@ -11,9 +11,11 @@ interface InspectionsListProps {
   currentQuery: string;
   currentPage: number;
   totalPages: number;
+  currentSortField: string;
+  currentSortOrder: string;
 }
 
-export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages }: InspectionsListProps) {
+export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages, currentSortField, currentSortOrder }: InspectionsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,6 +41,8 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     params.set('status', newStatus);
     params.delete('query'); // Clear search query when switching tabs
     params.set('page', '1'); // Reset to page 1
+    params.delete('sortField'); // Reset to default sorts
+    params.delete('sortOrder');
     setSearchTerm('');
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -47,6 +51,18 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     if (newPage < 1 || newPage > totalPages) return;
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleSort = (field: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentSortField === field) {
+      params.set('sortOrder', currentSortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      params.set('sortField', field);
+      params.set('sortOrder', field === 'date' ? 'desc' : 'asc'); // Dates default to desc, text defaults to asc
+    }
+    params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -82,6 +98,25 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     if (!rel) return '-';
     if (Array.isArray(rel)) return `${rel[0]?.first_name || ''} ${rel[0]?.last_name || ''}`.trim() || '-';
     return `${rel.first_name || ''} ${rel.last_name || ''}`.trim() || '-';
+  };
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (currentSortField !== field) {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+        </svg>
+      );
+    }
+    return currentSortOrder === 'asc' ? (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+      </svg>
+    ) : (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    );
   };
 
   return (
@@ -152,10 +187,18 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-bold">
-                <th className="px-6 py-5">Date</th>
-                <th className="px-6 py-5">Builder</th>
-                <th className="px-6 py-5">Site</th>
-                <th className="px-6 py-5">Inspector</th>
+                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('date')}>
+                  <div className="flex items-center gap-2">Date <SortIcon field="date" /></div>
+                </th>
+                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('builder')}>
+                  <div className="flex items-center gap-2">Builder <SortIcon field="builder" /></div>
+                </th>
+                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('site')}>
+                  <div className="flex items-center gap-2">Site <SortIcon field="site" /></div>
+                </th>
+                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('inspector')}>
+                  <div className="flex items-center gap-2">Inspector <SortIcon field="inspector" /></div>
+                </th>
                 <th className="px-6 py-5 text-right">Actions</th>
               </tr>
             </thead>

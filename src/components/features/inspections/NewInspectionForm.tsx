@@ -292,7 +292,7 @@ export default function NewInspectionForm({
 
       const result = await saveInspection(submissionData);
       if (result.success) {
-        router.push('/dashboard');
+        router.push('/dashboard/inspections?status=Completed');
       } else {
         setError(result.error || 'Failed to submit inspection');
         setIsSubmitting(false);
