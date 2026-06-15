@@ -52,6 +52,7 @@ export async function saveInspection(formData: {
   siteId: string;
   operativesOnSite: number;
   supervisorQualification: string;
+  inspectionDate: string;
   responses: Record<string, { isCompliant: boolean | null; comments: string; photoUrls: string[] }>;
   signatures: Array<{ name: string; positionId: string; signatureData: string }>;
   status: string;
@@ -73,7 +74,7 @@ export async function saveInspection(formData: {
       operatives_on_site: formData.operativesOnSite || null,
       supervisor_qualification: formData.supervisorQualification || null,
       status: formData.status,
-      inspection_date: new Date().toISOString().split('T')[0]
+      inspection_date: formData.inspectionDate
   };
 
   if (formData.pdfUrl) {
@@ -153,11 +154,11 @@ export async function saveInspection(formData: {
       }
 
       const inspectorName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
-      const displayDate = new Date().toLocaleDateString('en-GB', {
+      const displayDate = new Date(formData.inspectionDate).toLocaleDateString('en-GB', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
 
-      const subject = `Site Inspection - ${siteData?.name || 'N/A'}`;
+      const subject = `Inspection Report - ${siteData?.name || 'N/A'}`;
 
       // Construct the HTML Email Body
       const htmlBody = `

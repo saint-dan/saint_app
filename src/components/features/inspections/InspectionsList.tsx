@@ -137,8 +137,8 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Site Inspections</h1>
-          <p className="text-slate-500 mt-1">View and manage site inspections.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspection Reports</h1>
+          <p className="text-slate-500 mt-1">View and manage inspection reports.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {roleName === 'Admin' && (
@@ -239,7 +239,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
               {initialInspections.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
-                    No {currentStatus.toLowerCase()} inspections found.
+                    No {currentStatus.toLowerCase()} inspection reports found.
                   </td>
                 </tr>
               ) : (

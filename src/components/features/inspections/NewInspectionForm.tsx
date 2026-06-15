@@ -72,17 +72,18 @@ export default function NewInspectionForm({
   const [newPositionName, setNewPositionName] = useState('');
   const [isSavingPosition, setIsSavingPosition] = useState(false);
 
-  // Formatter for display
-  const displayDate = new Date(initialDate || new Date()).toLocaleDateString('en-GB', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
-
   // State: Form Header Data
   const [headerData, setHeaderData] = useState({
     builderId: initialHeaderData?.builderId || '',
     siteId: initialHeaderData?.siteId || '',
     operativesOnSite: initialHeaderData?.operativesOnSite || '',
-    supervisorQualification: initialHeaderData?.supervisorQualification || profile?.qualification || ''
+    supervisorQualification: initialHeaderData?.supervisorQualification || profile?.qualification || '',
+    inspectionDate: initialDate || new Date().toISOString().split('T')[0]
+  });
+
+  // Formatter for display
+  const displayDate = new Date(headerData.inspectionDate).toLocaleDateString('en-GB', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
   // State: Question Responses
@@ -206,6 +207,7 @@ export default function NewInspectionForm({
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
+        inspectionDate: headerData.inspectionDate,
         responses,
         signatures: currentSignatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
         status: 'Draft'
@@ -329,6 +331,7 @@ export default function NewInspectionForm({
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
         supervisorQualification: headerData.supervisorQualification,
+        inspectionDate: headerData.inspectionDate,
         responses,
         signatures: signatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
         status: 'Completed',
@@ -380,7 +383,7 @@ export default function NewInspectionForm({
     setShowDeleteConfirm(false);
     const result = await deleteInspection(inspectionId);
     if (result.success) {
-      router.push('/dashboard/inspections');
+      router.push('/dashboard/inspections?status=Completed');
     } else {
       setError(result.error || 'Failed to delete inspection');
       setIsDeleting(false);
@@ -395,14 +398,14 @@ export default function NewInspectionForm({
       {/* Page Title & Cancel Button */}
       <div className="mb-8 flex items-center justify-between px-6 sm:px-10">
         <div>
-          <Link href="/dashboard/inspections" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+          <Link href="/dashboard/inspections?status=Completed" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
             Back to List
           </Link>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Site Inspection
+            Inspection Report
           </h1>
           <div className="mt-3 flex flex-col items-start gap-2">
             <span className={`px-3 py-1 font-bold text-xs rounded-lg border uppercase tracking-wider ${isReadOnly ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
@@ -432,7 +435,7 @@ export default function NewInspectionForm({
               disabled={isSubmitting || isDeleting}
               onClick={async () => {
                 if (headerData.builderId) await autoSaveDraft(undefined, 'draft');
-                router.push('/dashboard/inspections');
+                router.push('/dashboard/inspections?status=Completed');
               }}
               className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
             >
@@ -514,7 +517,7 @@ export default function NewInspectionForm({
             </div>
             <div className="space-y-1">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Qualification</span>
-              <p className="text-slate-900 font-semibold">{profile?.qualification || 'Not specified'}</p>
+              <p className="text-slate-900 font-semibold">{profile?.qualification || 'None'}</p>
             </div>
           </div>
 
@@ -625,10 +628,17 @@ export default function NewInspectionForm({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Date</label>
-              <div className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 shadow-sm cursor-not-allowed">
-                {displayDate}
-              </div>
+              <label htmlFor="inspectionDate" className="text-sm font-semibold text-slate-700">Inspection Date</label>
+              <input
+                type="date"
+                id="inspectionDate"
+                name="inspectionDate"
+                value={headerData.inspectionDate}
+                onChange={handleHeaderChange}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700"
+                required
+                disabled={isReadOnly}
+              />
             </div>
           </div>
         </div>
@@ -854,7 +864,7 @@ export default function NewInspectionForm({
             ) : !isReadOnly && (
               <button
                 type="button"
-                onClick={() => router.push('/dashboard/inspections')}
+                onClick={() => router.push('/dashboard/inspections?status=Completed')}
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-red-600 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >

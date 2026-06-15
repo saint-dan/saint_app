@@ -28,10 +28,10 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
         </div>
       </div>
       
-      {/* Site Inspections Section */}
+      {/* Inspection Reports Section */}
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-4">
-          <h3 className="text-xl font-bold text-slate-900">Site Inspections</h3>
+          <h3 className="text-xl font-bold text-slate-900">Inspection Reports</h3>
           <div className="flex items-center">
             <Link
               href="/dashboard/inspections/new"

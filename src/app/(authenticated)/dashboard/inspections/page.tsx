@@ -25,8 +25,8 @@ export default async function InspectionsPage({
   }
 
   const resolvedParams = await searchParams;
-  // Default to Draft so clicking the generic link or landing here opens Drafts first
-  const status = (resolvedParams?.status as string) || 'Draft';
+  // Default to Completed so clicking the generic link or landing here opens Completed first
+  const status = (resolvedParams?.status as string) || 'Completed';
   const query = (resolvedParams?.query as string) || '';
   const page = parseInt((resolvedParams?.page as string) || '1', 10);
   const sortField = (resolvedParams?.sortField as string) || 'date';

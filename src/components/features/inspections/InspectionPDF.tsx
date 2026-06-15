@@ -74,7 +74,7 @@ export default function InspectionPDF({
         {/* Header Area */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Saint Site Inspection</Text>
+            <Text style={styles.title}>Saint Inspection Report</Text>
             <Text style={styles.subtitle}>Health, Safety & Quality Checklist</Text>
           </View>
           {/* Uses standard absolute path for the public folder logo */}
