@@ -56,6 +56,7 @@ export interface InspectionPDFProps {
   date: string;
   inspectorName: string;
   inspectorPosition?: string;
+  inspectorQualification?: string;
   sections: any[];
   questions: any[];
   responses: Record<string, any>;
@@ -67,6 +68,7 @@ export default function InspectionPDF({
   date,
   inspectorName,
   inspectorPosition,
+  inspectorQualification,
   sections,
   questions,
   responses,
@@ -88,9 +90,10 @@ export default function InspectionPDF({
 
         {/* Meta Information */}
         <View style={styles.metaGrid}>
-          <View style={styles.metaItemFull}><Text style={styles.metaLabel}>Date of Inspection</Text><Text style={styles.metaValue}>{date}</Text></View>
+          <View style={styles.metaItem}><Text style={styles.metaLabel}>Date of Inspection</Text><Text style={styles.metaValue}>{date}</Text></View>
           <View style={styles.metaItem}><Text style={styles.metaLabel}>Inspector</Text><Text style={styles.metaValue}>{inspectorName}</Text></View>
           <View style={styles.metaItem}><Text style={styles.metaLabel}>Position</Text><Text style={styles.metaValue}>{inspectorPosition || 'N/A'}</Text></View>
+          <View style={styles.metaItem}><Text style={styles.metaLabel}>Qualification</Text><Text style={styles.metaValue}>{inspectorQualification || 'N/A'}</Text></View>
         </View>
 
         {/* Checklist Content */}

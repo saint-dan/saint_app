@@ -291,6 +291,7 @@ export default function NewInspectionForm({
           date={displayDate}
           inspectorName={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()}
           inspectorPosition={profile?.job_title || ''}
+          inspectorQualification={profile?.qualification || 'N/A'}
           sections={sections}
           questions={questions}
           responses={responses}
@@ -504,7 +505,7 @@ export default function NewInspectionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label htmlFor="inspectionDate" className="text-sm font-semibold text-slate-700">Inspection Date</label>
               <input
