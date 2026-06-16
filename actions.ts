@@ -236,7 +236,7 @@ export async function saveInspection(formData: {
 
   // 5. Purge cache for the dashboard to reflect new data
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/inspections');
+  revalidatePath('/inspections');
   return { success: true, inspectionId: currentInspectionId };
 }
 
@@ -346,7 +346,7 @@ export async function createInspectionSection(title: string) {
     return { success: false, error: 'Failed to create section: ' + error?.message };
   }
 
-  revalidatePath('/dashboard/inspections/edit_form');
+  revalidatePath('/inspections/edit_form');
   return { success: true, section: data };
 }
 
@@ -375,7 +375,7 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
   // Perform updates in parallel
   await Promise.all(updates.map(u => adminClient.from('inspection_sections').update({ display_order: u.display_order }).eq('id', u.id)));
 
-  revalidatePath('/dashboard/inspections/edit_form');
+  revalidatePath('/inspections/edit_form');
   return { success: true };
 }
 
@@ -430,7 +430,7 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
 
   if (error || !data) return { success: false, error: 'Failed to create question: ' + error?.message };
 
-  revalidatePath(`/dashboard/inspections/edit_form/${sectionId}`);
+  revalidatePath(`/inspections/edit_form/${sectionId}`);
   return { success: true, question: data };
 }
 
@@ -450,7 +450,7 @@ export async function updateInspectionQuestionOrders(updates: { id: string; disp
 
   await Promise.all(updates.map(u => adminClient.from('inspection_questions').update({ display_order: u.display_order }).eq('id', u.id)));
 
-  revalidatePath(`/dashboard/inspections/edit_form/${sectionId}`);
+  revalidatePath(`/inspections/edit_form/${sectionId}`);
   return { success: true };
 }
 
@@ -479,7 +479,7 @@ export async function deleteInspectionSection(sectionId: string) {
     return { success: false, error: 'Failed to delete section: ' + error.message };
   }
 
-  revalidatePath('/dashboard/inspections/edit_form');
+  revalidatePath('/inspections/edit_form');
   return { success: true };
 }
 
@@ -508,7 +508,7 @@ export async function deleteInspectionQuestion(questionId: string, sectionId: st
     return { success: false, error: 'Failed to delete question: ' + error.message };
   }
 
-  revalidatePath(`/dashboard/inspections/edit_form/${sectionId}`);
+  revalidatePath(`/inspections/edit_form/${sectionId}`);
   return { success: true };
 }
 
@@ -545,7 +545,7 @@ export async function deleteInspection(id: string) {
   }
 
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/inspections');
+  revalidatePath('/inspections');
   return { success: true };
 }
 
