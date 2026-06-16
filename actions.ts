@@ -63,8 +63,18 @@ export async function updatePassword(formData: FormData) {
     return redirect('/update-password?message=' + encodeURIComponent(updateError.message));
   }
 
-  // Clear the force_password_reset flag now that they have set a secure password
-  await supabase.from('users').update({ force_password_reset: false }).eq('id', user.id);
+  // Clear the force_password_reset flag and set the user status to Active
+  const { error: dbError } = await supabase
+    .from('users')
+    .update({ 
+      force_password_reset: false,
+      status: 'Active' 
+    })
+    .eq('id', user.id);
+
+  if (dbError) {
+    return redirect('/update-password?message=' + encodeURIComponent('Password updated, but failed to activate profile. Please contact support.'));
+  }
 
   revalidatePath('/', 'layout');
   redirect('/dashboard');
