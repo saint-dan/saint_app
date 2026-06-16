@@ -58,6 +58,11 @@ export default function NewInspectionForm({
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [submitStatusMessage, setSubmitStatusMessage] = useState<string | null>(null);
 
+  // Auto-scroll to top when moving between sections/pages
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
   // State: Local Reference Data for inline creation
   const [localBuilders, setLocalBuilders] = useState(builders);
   const [localSites, setLocalSites] = useState(sites);
@@ -103,10 +108,10 @@ export default function NewInspectionForm({
     if (initialSignatures && initialSignatures.length > 0) {
       return initialSignatures;
     }
-    const profilePosition = positions.find((p: any) => p.name.toLowerCase() === profile?.job_title?.toLowerCase());
+    const defaultPosition = positions.find((p: any) => p.name.toLowerCase() === 'inspector') || positions.find((p: any) => p.name.toLowerCase() === profile?.job_title?.toLowerCase());
     return [{
       name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
-      positionId: profilePosition ? profilePosition.id : '',
+      positionId: defaultPosition ? defaultPosition.id : '',
       signatureData: null,
       signedAt: new Date().toISOString()
     }];

@@ -27,8 +27,8 @@ export default function InspectionReportEmail({
           <Section style={body}>
             <Text style={text}>Hello,</Text>
             <Text style={text}>
-              Please find attached the completed Site Inspection Report for <strong>{siteName} ({builderName})</strong>, 
-              conducted by {inspectorName} on {date}.
+              Please find attached the completed Site Inspection Report for <br/><strong>{siteName} ({builderName})</strong><br/><br/>
+              Completed by {inspectorName} on {date}.
             </Text>
             <div dangerouslySetInnerHTML={{ __html: GLOBAL_EMAIL_SIGNATURE }} />
           </Section>
