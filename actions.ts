@@ -10,6 +10,34 @@ import { render } from '@react-email/components';
 import InspectionReportEmail from '@/components/emails/InspectionReportEmail';
 import { ROLES } from '@/lib/constants';
 
+// Helper function to ensure the user is an authenticated admin
+async function requireAdmin() {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { user: null, adminClient: null, error: 'User not authenticated' };
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  // The role can be an object or an array of objects depending on the query
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  if (roleName !== ROLES.ADMIN) {
+    return { user: null, adminClient: null, error: 'Unauthorized' };
+  }
+
+  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  return { user, adminClient, error: null };
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient();
   
@@ -306,28 +334,10 @@ export async function createPosition(name: string) {
 }
 
 export async function createInspectionSection(title: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: 'User not authenticated' };
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
   }
-
-  // Check admin access
-  const { data: profile } = await supabase
-    .from('users')
-    .select('roles(name)')
-    .eq('id', user.id)
-    .single();
-
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) {
-    return { success: false, error: 'Unauthorized' };
-  }
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
   // Find the highest current display_order
   const { data: existing } = await adminClient
@@ -338,14 +348,14 @@ export async function createInspectionSection(title: string) {
 
   const nextOrder = existing && existing.length > 0 ? existing[0].display_order + 1 : 1;
 
-  const { data, error } = await adminClient
+  const { data, error: insertError } = await adminClient
     .from('inspection_sections')
     .insert({ title, display_order: nextOrder, is_active: true })
     .select()
     .single();
 
-  if (error || !data) {
-    return { success: false, error: 'Failed to create section: ' + error?.message };
+  if (insertError || !data) {
+    return { success: false, error: 'Failed to create section: ' + insertError?.message };
   }
 
   revalidatePath('/inspections/edit_form');
@@ -353,26 +363,10 @@ export async function createInspectionSection(title: string) {
 }
 
 export async function updateInspectionSectionOrders(updates: { id: string; display_order: number }[]) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  // Check admin access
-  const { data: profile } = await supabase
-    .from('users')
-    .select('roles(name)')
-    .eq('id', user.id)
-    .single();
-
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) {
-    return { success: false, error: 'Unauthorized' };
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
   }
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
   // Perform updates in parallel
   await Promise.all(updates.map(u => adminClient.from('inspection_sections').update({ display_order: u.display_order }).eq('id', u.id)));
@@ -382,24 +376,10 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
 }
 
 export async function createInspectionQuestion(sectionId: string, questionText: string, responseTypeId: string, allowPhotos: boolean = false) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  // Check admin access
-  const { data: profile } = await supabase
-    .from('users')
-    .select('roles(name)')
-    .eq('id', user.id)
-    .single();
-
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
 
   // Find highest display_order for this section
   const { data: existing } = await adminClient
@@ -411,7 +391,7 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
 
   const nextOrder = existing && existing.length > 0 ? existing[0].display_order + 1 : 1;
 
-  const { data, error } = await adminClient
+  const { data, error: insertError } = await adminClient
     .from('inspection_questions')
     .insert({
       section_id: sectionId,
@@ -431,25 +411,17 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
     `)
     .single();
 
-  if (error || !data) return { success: false, error: 'Failed to create question: ' + error?.message };
+  if (insertError || !data) return { success: false, error: 'Failed to create question: ' + insertError?.message };
 
   revalidatePath(`/inspections/edit_form/${sectionId}`);
   return { success: true, question: data };
 }
 
 export async function updateInspectionQuestionOrders(updates: { id: string; display_order: number }[], sectionId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
 
   await Promise.all(updates.map(u => adminClient.from('inspection_questions').update({ display_order: u.display_order }).eq('id', u.id)));
 
@@ -458,28 +430,20 @@ export async function updateInspectionQuestionOrders(updates: { id: string; disp
 }
 
 export async function deleteInspectionSection(sectionId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
 
   // We use soft-delete (is_active = false) to prevent Foreign Key constraint errors 
   // on historical inspection responses that map to questions within this section.
-  const { error } = await adminClient
+  const { error: deleteError } = await adminClient
     .from('inspection_sections')
     .update({ is_active: false })
     .eq('id', sectionId);
 
-  if (error) {
-    return { success: false, error: 'Failed to delete section: ' + error.message };
+  if (deleteError) {
+    return { success: false, error: 'Failed to delete section: ' + deleteError.message };
   }
 
   revalidatePath('/inspections/edit_form');
@@ -487,28 +451,20 @@ export async function deleteInspectionSection(sectionId: string) {
 }
 
 export async function deleteInspectionQuestion(questionId: string, sectionId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
 
   // We use soft-delete (is_active = false) to prevent Foreign Key constraint errors 
   // on historical inspection responses that map to this question.
-  const { error } = await adminClient
+  const { error: deleteError } = await adminClient
     .from('inspection_questions')
     .update({ is_active: false })
     .eq('id', questionId);
 
-  if (error) {
-    return { success: false, error: 'Failed to delete question: ' + error.message };
+  if (deleteError) {
+    return { success: false, error: 'Failed to delete question: ' + deleteError.message };
   }
 
   revalidatePath(`/inspections/edit_form/${sectionId}`);
@@ -559,27 +515,18 @@ export async function logout() {
 }
 
 export async function updateUserRole(userId: string, roleId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  // Check admin access
-  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
   
-  const { error } = await adminClient
+  const { error: updateError } = await adminClient
     .from('users')
     .update({ role_id: roleId })
     .eq('id', userId);
 
-  if (error) {
-    return { success: false, error: error.message };
+  if (updateError) {
+    return { success: false, error: updateError.message };
   }
   
   revalidatePath('/admin/users', 'layout');
@@ -587,27 +534,18 @@ export async function updateUserRole(userId: string, roleId: string) {
 }
 
 export async function updateUserStatus(userId: string, status: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { success: false, error: 'User not authenticated' };
-
-  // Check admin access
-  const { data: profile } = await supabase.from('users').select('roles(name)').eq('id', user.id).single();
-  const roleData = profile?.roles as any;
-  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
-
-  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
-
-  const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
   
-  const { error } = await adminClient
+  const { error: updateError } = await adminClient
     .from('users')
     .update({ status: status })
     .eq('id', userId);
 
-  if (error) {
-    return { success: false, error: error.message };
+  if (updateError) {
+    return { success: false, error: updateError.message };
   }
   
   revalidatePath('/admin/users', 'layout');
