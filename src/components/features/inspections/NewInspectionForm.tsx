@@ -55,6 +55,9 @@ export default function NewInspectionForm({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [submitStatusMessage, setSubmitStatusMessage] = useState<string | null>(null);
+
   // State: Local Reference Data for inline creation
   const [localBuilders, setLocalBuilders] = useState(builders);
   const [localSites, setLocalSites] = useState(sites);
@@ -279,9 +282,14 @@ export default function NewInspectionForm({
       return;
     }
 
+    setShowSubmitConfirm(true);
+  };
+
+  const executeSubmit = async () => {
     setIsSubmitting(true);
     setLoadingAction('submit');
     setError(null);
+    setSubmitStatusMessage('Generating PDF report...');
 
     try {
       let finalPdfUrl = null;
@@ -313,6 +321,7 @@ export default function NewInspectionForm({
         />
       ).toBlob();
 
+      setSubmitStatusMessage('Uploading secure document...');
       const sanitizedSiteName = siteName.replace(/[^a-zA-Z0-9_-]/g, '_');
       const fileName = `Saint_Inspection_${sanitizedSiteName}_${Date.now()}.pdf`;
 
@@ -328,6 +337,7 @@ export default function NewInspectionForm({
       const { data: urlData } = supabase.storage.from('inspection_reports').getPublicUrl(fileName);
       finalPdfUrl = urlData.publicUrl;
 
+      setSubmitStatusMessage('Finalising inspection record...');
       const submissionData = {
         inspectionId: inspectionId || undefined,
         builderId: headerData.builderId,
@@ -343,16 +353,21 @@ export default function NewInspectionForm({
 
       const result = await saveInspection(submissionData);
       if (result.success) {
-        router.push('/inspections?status=Completed');
+        setSubmitStatusMessage('Success! Redirecting...');
+        setTimeout(() => {
+          router.push('/inspections?status=Completed');
+        }, 1200);
       } else {
         setError(result.error || 'Failed to submit inspection');
         setIsSubmitting(false);
         setLoadingAction(null);
+        setShowSubmitConfirm(false);
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setIsSubmitting(false);
       setLoadingAction(null);
+      setShowSubmitConfirm(false);
     }
   };
 
@@ -971,6 +986,67 @@ export default function NewInspectionForm({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Confirmation Modal */}
+      {showSubmitConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+            onClick={() => !isSubmitting && setShowSubmitConfirm(false)}
+          />
+          
+          <div className="relative bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+            {isSubmitting ? (
+              <div className="flex flex-col items-center text-center py-6">
+                {submitStatusMessage?.includes('Success') ? (
+                  <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-6 shadow-inner border border-green-100 animate-in zoom-in duration-300">
+                    <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 flex items-center justify-center mb-6">
+                    <svg className="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )}
+                <h3 className="text-xl font-extrabold text-slate-900 mb-2">Processing</h3>
+                <p className="text-slate-500 font-medium">{submitStatusMessage}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-6 shadow-inner border border-blue-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2 tracking-tight">Finish Report?</h3>
+                <p className="text-slate-500 font-medium mb-8">
+                  Are you sure you have finished? Once submitted, the report will be saved and cannot be changed.
+                </p>
+                <div className="flex w-full gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowSubmitConfirm(false)}
+                    className="flex-1 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-xl transition-colors shadow-sm"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={executeSubmit}
+                    className="flex-1 py-3.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
+                  >
+                    Yes, Submit
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
