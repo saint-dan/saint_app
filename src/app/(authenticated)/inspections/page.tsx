@@ -63,6 +63,7 @@ export default async function InspectionsPage({
       created_at,
       status,
       pdf_url,
+      comments,
       inspector_id,
       builders(name),
       sites(name),
@@ -133,9 +134,8 @@ export default async function InspectionsPage({
     let valB = '';
 
     switch (sortField) {
+      case 'comments': valA = (a.comments || '').toLowerCase(); valB = (b.comments || '').toLowerCase(); break;
       case 'template': valA = getNestedName(a.inspection_templates).toLowerCase(); valB = getNestedName(b.inspection_templates).toLowerCase(); break;
-      case 'builder': valA = getNestedName(a.builders).toLowerCase(); valB = getNestedName(b.builders).toLowerCase(); break;
-      case 'site': valA = getNestedName(a.sites).toLowerCase(); valB = getNestedName(b.sites).toLowerCase(); break;
       case 'inspector': valA = getUserName(a.users).toLowerCase(); valB = getUserName(b.users).toLowerCase(); break;
       case 'date':
       default:

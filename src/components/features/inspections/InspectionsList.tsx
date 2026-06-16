@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ROLES } from '@/lib/constants';
-import { createDraftInspection } from '../../../../actions';
+import { createDraftInspection, updateInspectionComments } from '../../../../actions';
 
 interface InspectionsListProps {
   initialInspections: any[];
@@ -29,6 +29,11 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState('');
   const [isCreatingDraft, setIsCreatingDraft] = useState(false);
+
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [selectedInspectionForComment, setSelectedInspectionForComment] = useState<any>(null);
+  const [commentText, setCommentText] = useState('');
+  const [isSavingComment, setIsSavingComment] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +128,29 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     } else {
       alert(result.error || 'Failed to create draft inspection');
       setIsCreatingDraft(false);
+    }
+  };
+
+  const openCommentModal = (inspection: any) => {
+    setSelectedInspectionForComment(inspection);
+    setCommentText(inspection.comments || '');
+    setIsCommentModalOpen(true);
+  };
+
+  const handleSaveComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInspectionForComment) return;
+
+    setIsSavingComment(true);
+    const result = await updateInspectionComments(selectedInspectionForComment.id, commentText);
+    setIsSavingComment(false);
+
+    if (result.success) {
+      setIsCommentModalOpen(false);
+      setSelectedInspectionForComment(null);
+      router.refresh();
+    } else {
+      alert(result.error || 'Failed to update comments');
     }
   };
 
@@ -240,19 +268,16 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-bold">
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('date')}>
-                  <div className="flex items-center gap-2">Date <SortIcon field="date" /></div>
+                  <div className="flex items-center gap-2">Inspection Date <SortIcon field="date" /></div>
                 </th>
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('template')}>
                   <div className="flex items-center gap-2">Inspection Type <SortIcon field="template" /></div>
                 </th>
-                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('builder')}>
-                  <div className="flex items-center gap-2">Builder <SortIcon field="builder" /></div>
-                </th>
-                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('site')}>
-                  <div className="flex items-center gap-2">Site <SortIcon field="site" /></div>
-                </th>
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('inspector')}>
                   <div className="flex items-center gap-2">Inspector <SortIcon field="inspector" /></div>
+                </th>
+                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('comments')}>
+                  <div className="flex items-center gap-2">Comments <SortIcon field="comments" /></div>
                 </th>
                 <th className="px-6 py-5 text-right"></th>
               </tr>
@@ -278,15 +303,23 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                       {extractName(inspection.inspection_templates) || 'Standard'}
                     </td>
                     <td className="px-6 py-5 text-sm font-medium text-slate-700">
-                      {extractName(inspection.builders)}
-                    </td>
-                    <td className="px-6 py-5 text-sm font-medium text-slate-700">
-                      {extractName(inspection.sites)}
-                    </td>
-                    <td className="px-6 py-5 text-sm font-medium text-slate-700">
                       {extractUserName(inspection.users)}
                     </td>
-                    <td className="px-6 py-5 text-right whitespace-nowrap">
+                    <td className="px-6 py-5 text-sm font-medium text-slate-700 max-w-[200px] truncate">
+                      {inspection.comments || <span className="text-slate-400 italic">None</span>}
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); openCommentModal(inspection); }}
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                          title="Add/Edit Comments"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                          </svg>
+                        </button>
                       {currentStatus === 'Draft' ? (
                         <Link
                           href={`/inspections/${inspection.id}`}
@@ -307,6 +340,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                           Download
                         </button>
                       )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -365,6 +399,33 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                 <button type="button" onClick={() => setIsNewModalOpen(false)} disabled={isCreatingDraft} className="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors">Cancel</button>
                 <button type="submit" disabled={isCreatingDraft || !selectedTypeId} className="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl shadow-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2">
                   {isCreatingDraft ? 'Starting...' : 'Start'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Comment Modal */}
+      {isCommentModalOpen && selectedInspectionForComment && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">Inspection Comments</h2>
+            <form onSubmit={handleSaveComment}>
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Comments</label>
+                <textarea 
+                  value={commentText} 
+                  onChange={(e) => setCommentText(e.target.value)} 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-700 font-medium resize-none"
+                  rows={4}
+                  placeholder="Add your comments here..."
+                />
+              </div>
+              <div className="flex w-full gap-3">
+                <button type="button" onClick={() => setIsCommentModalOpen(false)} disabled={isSavingComment} className="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors">Cancel</button>
+                <button type="submit" disabled={isSavingComment} className="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl shadow-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                  {isSavingComment ? 'Saving...' : 'Save Comments'}
                 </button>
               </div>
             </form>

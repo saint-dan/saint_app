@@ -660,3 +660,25 @@ export async function createDraftInspection(templateId: string) {
   revalidatePath('/inspections');
   return { success: true, inspectionId: data.id };
 }
+
+export async function updateInspectionComments(id: string, comments: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  const { error } = await supabase
+    .from('site_inspections')
+    .update({ comments })
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: 'Failed to update comments: ' + error.message };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/inspections');
+  return { success: true };
+}

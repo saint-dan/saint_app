@@ -325,6 +325,7 @@ export type Database = {
           created_at: string | null
           id: string
           inspection_date: string
+          comments: string | null
           inspector_id: string | null
           operatives_on_site: number | null
           pdf_url: string | null
@@ -338,6 +339,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           inspection_date?: string
+          comments?: string | null
           inspector_id?: string | null
           operatives_on_site?: number | null
           pdf_url?: string | null
@@ -351,6 +353,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           inspection_date?: string
+          comments?: string | null
           inspector_id?: string | null
           operatives_on_site?: number | null
           pdf_url?: string | null
