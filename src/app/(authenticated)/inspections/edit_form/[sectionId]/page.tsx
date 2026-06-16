@@ -60,7 +60,7 @@ export default async function EditSectionQuestionsPage({
   // Fetch the questions for this section
   const { data: questions } = await adminClient
     .from('inspection_questions')
-    .select('id, question_text, display_order, response_type_id, response_types(name)')
+    .select('id, question_text, display_order, allow_photos, response_type_id, response_types(name)')
     .eq('section_id', sectionId)
     .eq('is_active', true)
     .order('display_order', { ascending: true });

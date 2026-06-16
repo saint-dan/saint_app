@@ -425,6 +425,7 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
       id,
       question_text,
       display_order,
+      allow_photos,
       response_type_id,
       response_types (name)
     `)
