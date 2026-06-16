@@ -211,6 +211,57 @@ export type Database = {
         }
         Relationships: []
       }
+      inspections: {
+        Row: {
+          comments: string | null
+          created_at: string | null
+          id: string
+          inspection_date: string
+          inspector_id: string | null
+          operatives_on_site: number | null
+          pdf_url: string | null
+          status: string | null
+          template_id: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          inspection_date?: string
+          inspector_id?: string | null
+          operatives_on_site?: number | null
+          pdf_url?: string | null
+          status?: string | null
+          template_id: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          inspection_date?: string
+          inspector_id?: string | null
+          operatives_on_site?: number | null
+          pdf_url?: string | null
+          status?: string | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_inspections_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           created_at: string | null
@@ -300,57 +351,6 @@ export type Database = {
           name?: string
         }
         Relationships: []
-      }
-      inspections: {
-        Row: {
-          comments: string | null
-          created_at: string | null
-          id: string
-          inspection_date: string
-          inspector_id: string | null
-          operatives_on_site: number | null
-          pdf_url: string | null
-          status: string | null
-          template_id: string
-        }
-        Insert: {
-          comments?: string | null
-          created_at?: string | null
-          id?: string
-          inspection_date?: string
-          inspector_id?: string | null
-          operatives_on_site?: number | null
-          pdf_url?: string | null
-          status?: string | null
-          template_id: string
-        }
-        Update: {
-          comments?: string | null
-          created_at?: string | null
-          id?: string
-          inspection_date?: string
-          inspector_id?: string | null
-          operatives_on_site?: number | null
-          pdf_url?: string | null
-          status?: string | null
-          template_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "site_inspections_inspector_id_fkey"
-            columns: ["inspector_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "site_inspections_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "inspection_templates"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       users: {
         Row: {
