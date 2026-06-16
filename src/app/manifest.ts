@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'A premium app for managing contractors',
     start_url: '/',
     display: 'standalone', // This makes it look like a native app (hides browser UI)
-    background_color: '#ffffff',
-    theme_color: '#000000',
+    background_color: '#f4f4f5',
+    theme_color: '#f4f4f5',
     icons: [
       {
         src: '/icon-192x192.png',

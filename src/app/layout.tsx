@@ -5,7 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import InstallPrompt from "@/components/InstallPrompt";
 
 export const viewport = {
-  themeColor: "#000000",
+  themeColor: "#f4f4f5",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
