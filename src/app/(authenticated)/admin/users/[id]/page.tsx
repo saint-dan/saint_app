@@ -19,8 +19,13 @@ export default async function UserProfilePage(props: { params: Promise<{ id: str
   }
 
   const roleName = Array.isArray(userDetails.roles) ? userDetails.roles[0]?.name : userDetails.roles?.name || 'Unassigned';
-  const locationName = Array.isArray(userDetails.locations) ? userDetails.locations[0]?.name : userDetails.locations?.name || 'N/A';
-  const isFitter = ['Contractor', 'Fitter'].includes(roleName);
+  const locationName = Array.isArray(userDetails.locations) ? userDetails.locations[0]?.name : userDetails.locations?.name || '';
+
+  const formattedCreatedDate = new Date(userDetails.created_at).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -77,62 +82,72 @@ export default async function UserProfilePage(props: { params: Promise<{ id: str
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary Location</p>
-                    <p className="font-medium text-slate-900">{locationName}</p>
+                    <p className="font-medium text-slate-900 min-h-6">{locationName}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Email Address</p>
-                    <p className="font-medium text-slate-900">{userDetails.email || 'N/A'}</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.email || ''}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mobile Number</p>
-                    <p className="font-medium text-slate-900">{userDetails.phone || 'N/A'}</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.phone || ''}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Job Title</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.job_title || ''}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Qualification</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.qualification || ''}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account Created</p>
+                    <p className="font-medium text-slate-900 min-h-6">{formattedCreatedDate}</p>
                   </div>
                   <div className="space-y-1 sm:col-span-2">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Address</p>
-                    <p className="font-medium text-slate-900 whitespace-pre-line">{userDetails.address || 'N/A'}</p>
+                    <p className="font-medium text-slate-900 whitespace-pre-line min-h-6">{userDetails.address || ''}</p>
                   </div>
                 </div>
               </div>
 
               {/* Tax & Business Profile */}
-              {isFitter && (
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contractor Details</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account Type</p>
-                      <p className="font-medium text-slate-900">{userDetails.account_type || 'N/A'}</p>
-                    </div>
-                    
-                    {userDetails.account_type === 'Limited Company' ? (
-                      <>
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Company Name</p>
-                          <p className="font-medium text-slate-900">{userDetails.company_name || 'N/A'}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reg Number</p>
-                          <p className="font-medium text-slate-900">{userDetails.company_reg_number || 'N/A'}</p>
-                        </div>
-                      </>
-                    ) : (
+              <div>
+                <h4 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Contractor Details</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account Type</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.account_type || ''}</p>
+                  </div>
+                  
+                  {userDetails.account_type === 'Limited Company' ? (
+                    <>
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">National Insurance</p>
-                        <p className="font-medium text-slate-900 uppercase">{userDetails.national_insurance || 'N/A'}</p>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Company Name</p>
+                        <p className="font-medium text-slate-900 min-h-6">{userDetails.company_name || ''}</p>
                       </div>
-                    )}
-                    
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reg Number</p>
+                        <p className="font-medium text-slate-900 min-h-6">{userDetails.company_reg_number || ''}</p>
+                      </div>
+                    </>
+                  ) : (
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">UTR Number</p>
-                      <p className="font-medium text-slate-900">{userDetails.utr_number || 'N/A'}</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">National Insurance</p>
+                      <p className="font-medium text-slate-900 uppercase min-h-6">{userDetails.national_insurance || ''}</p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">CIS Status</p>
-                      <p className="font-medium text-slate-900">{userDetails.cis_status || 'N/A'}</p>
-                    </div>
+                  )}
+                  
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">UTR Number</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.utr_number || ''}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">CIS Status</p>
+                    <p className="font-medium text-slate-900 min-h-6">{userDetails.cis_status || ''}</p>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
           </div>
