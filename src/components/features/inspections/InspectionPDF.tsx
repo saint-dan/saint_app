@@ -5,7 +5,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 
 // Create styles specifically for the PDF document
 const styles = StyleSheet.create({
-  page: { padding: 30, paddingTop: 140, paddingBottom: 50, fontFamily: 'Helvetica', fontSize: 10, color: '#334155' },
+  page: { padding: 30, paddingTop: 120, paddingBottom: 50, fontFamily: 'Helvetica', fontSize: 10, color: '#334155' },
   header: { position: 'absolute', top: 30, left: 30, right: 30, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2pt solid #2563eb', paddingBottom: 15 },
   title: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1e3a8a', marginBottom: 4 },
   subtitle: { fontSize: 10, color: '#64748b', marginLeft: 2 },
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   section: { marginTop: 15, marginBottom: 10 },
   sectionTitle: { fontSize: 12, fontFamily: 'Helvetica-Bold', backgroundColor: '#e2e8f0', padding: '6 8', marginBottom: 10, color: '#1e293b' },
   
-  questionBlock: { marginBottom: 12, paddingBottom: 12, paddingHorizontal: 10, borderBottom: '1pt solid #f1f5f9' },
+  questionBlock: { marginBottom: 12, paddingBottom: 12, paddingHorizontal: 5, borderBottom: '1pt solid #f1f5f9' },
   questionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   questionText: { flex: 1, paddingRight: 15, fontSize: 10, color: '#334155', lineHeight: 1.4 },
   
