@@ -306,7 +306,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                       {extractUserName(inspection.users)}
                     </td>
                     <td className="px-6 py-5 text-sm font-medium text-slate-700 max-w-[200px] truncate">
-                      {inspection.comments || <span className="text-slate-400 italic">None</span>}
+                      {inspection.comments || <span className="text-slate-400 italic"></span>}
                     </td>
                     <td className="px-6 py-5 whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
