@@ -221,7 +221,7 @@ export async function saveInspection(formData: {
         .single();
       const templateName = templateData?.name || 'Inspection Report';
 
-      const subject = `New Inspection - ${templateName}`;
+      const subject = `${templateName}`;
 
       // Construct the HTML Email Body
       const htmlBody = await render(React.createElement(InspectionReportEmail, {
