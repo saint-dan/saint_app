@@ -56,7 +56,7 @@ export default async function InspectionsPage({
 
   // Fetch inspections based on status with related table data
   const inspectionQuery = queryClient
-    .from('site_inspections')
+    .from('inspections')
     .select(`
       id,
       inspection_date,

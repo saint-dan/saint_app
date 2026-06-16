@@ -98,7 +98,7 @@ export type Database = {
             foreignKeyName: "inspection_responses_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
-            referencedRelation: "site_inspections"
+            referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
           {
@@ -175,7 +175,7 @@ export type Database = {
             foreignKeyName: "inspection_signatures_inspection_id_fkey"
             columns: ["inspection_id"]
             isOneToOne: false
-            referencedRelation: "site_inspections"
+            referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
           {
@@ -301,7 +301,7 @@ export type Database = {
         }
         Relationships: []
       }
-      site_inspections: {
+      inspections: {
         Row: {
           comments: string | null
           created_at: string | null

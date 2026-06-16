@@ -153,13 +153,13 @@ export async function saveInspection(formData: {
 
   if (currentInspectionId) {
     const { error } = await dbClient
-      .from('site_inspections')
+      .from('inspections')
       .update(headerPayload)
       .eq('id', currentInspectionId);
     if (error) return { success: false, error: 'Failed to update inspection: ' + error.message };
   } else {
     const { data, error } = await dbClient
-      .from('site_inspections')
+      .from('inspections')
       .insert(headerPayload)
       .select()
       .single();
@@ -507,7 +507,7 @@ export async function deleteInspection(id: string) {
     : supabase;
 
   const { error } = await deleteClient
-    .from('site_inspections')
+    .from('inspections')
     .delete()
     .eq('id', id);
 
@@ -635,7 +635,7 @@ export async function createDraftInspection(templateId: string) {
   const today = new Date().toISOString().split('T')[0];
 
   const { data, error } = await supabase
-    .from('site_inspections')
+    .from('inspections')
     .insert({
       template_id: templateId,
       inspector_id: user.id,
@@ -660,7 +660,7 @@ export async function updateInspectionComments(id: string, comments: string) {
   }
 
   const { error } = await supabase
-    .from('site_inspections')
+    .from('inspections')
     .update({ comments })
     .eq('id', id);
 

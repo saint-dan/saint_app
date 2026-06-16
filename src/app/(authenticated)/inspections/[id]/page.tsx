@@ -35,7 +35,7 @@ export default async function InspectionFormPage(props: {
 
   // 1. Fetch the specific inspection
   const { data: inspection } = await supabase
-    .from('site_inspections')
+    .from('inspections')
     .select('*, inspection_templates(name)')
     .eq('id', params.id)
     .single();

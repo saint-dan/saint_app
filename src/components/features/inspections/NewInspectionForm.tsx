@@ -356,7 +356,7 @@ export default function NewInspectionForm({
     
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.from('site_inspections').select('pdf_url').eq('id', inspectionId).single();
+      const { data, error } = await supabase.from('inspections').select('pdf_url').eq('id', inspectionId).single();
       if (!error && data?.pdf_url) {
         window.open(data.pdf_url, '_blank');
       } else {
