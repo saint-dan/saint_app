@@ -7,8 +7,8 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import AdminView from './AdminView';
-import ContractsManagerView from './ContractsManagerView';
-import SubcontractorView from './SubcontractorView';
+import SiteInspectorView from './SiteInspectorView';
+import FitterView from './FitterView';
 import { ROLES } from '@/lib/constants';
 
 export interface UserProfile {
@@ -38,8 +38,8 @@ export default async function DashboardPage() {
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {roleName === ROLES.ADMIN && <AdminView profile={profile} />}
-      {roleName === ROLES.FITTER && <SubcontractorView profile={profile} />}
-      {roleName === ROLES.INSPECTOR && <ContractsManagerView profile={profile} />}
+      {roleName === ROLES.FITTER && <FitterView profile={profile} />}
+      {roleName === ROLES.INSPECTOR && <SiteInspectorView profile={profile} />}
       
       {roleName !== ROLES.ADMIN && roleName !== ROLES.FITTER && roleName !== ROLES.INSPECTOR && (
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 text-center">

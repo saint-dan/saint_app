@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { UserProfile } from './page';
 import { createClient } from '@/utils/supabase/server';
 
-export default async function ContractsManagerView({ profile }: { profile: UserProfile | null }) {
+export default async function SiteInspectorView({ profile }: { profile: UserProfile | null }) {
   const supabase = await createClient();
   
   const { count: draftCount } = await supabase
@@ -23,7 +23,7 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-8 sm:px-12">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back, {profile?.first_name || 'Inspector'}!
+            Welcome back, {profile?.first_name || 'Site Inspector'}!
           </h2>
         </div>
       </div>

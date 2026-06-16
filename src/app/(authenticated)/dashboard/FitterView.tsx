@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserProfile } from './page';
 
-export default function SubcontractorView({ profile }: { profile: UserProfile | null }) {
+export default function FitterView({ profile }: { profile: UserProfile | null }) {
   const status = profile?.status || 'Pending';
 
   return (
