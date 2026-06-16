@@ -16,10 +16,13 @@ export default function ProfilePage() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [userStatus, setUserStatus] = useState('Pending');
+  const [createdAt, setCreatedAt] = useState('');
   const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   
   const [formData, setFormData] = useState({
@@ -86,6 +89,8 @@ export default function ProfilePage() {
         const roleData = profileData.roles;
         const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
         if (roleName) setUserRole(roleName);
+        setUserStatus(profileData.status || 'Pending');
+        setCreatedAt(profileData.created_at || '');
       }
       
       setLoading(false);
@@ -135,6 +140,7 @@ export default function ProfilePage() {
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       // Update local state with the formatted phone to reflect saved changes
       setFormData(prev => ({ ...prev, phone: formattedPhone }));
+      setIsEditing(false);
     }
     setSaving(false);
   };
@@ -148,6 +154,29 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const formattedCreatedDate = createdAt ? new Date(createdAt).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }) : '';
+
+  const renderInput = (name: keyof typeof formData, label: string, type = 'text', isTextArea = false) => (
+    <div className={`space-y-1 ${isTextArea ? 'sm:col-span-2' : ''}`}>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
+      {isEditing ? (
+        isTextArea ? (
+          <textarea name={name} rows={2} value={formData[name] as string} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm resize-none" />
+        ) : (
+          <input name={name} type={type} value={formData[name] as string} onChange={handleChange} className={`w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm ${name === 'nationalInsurance' ? 'uppercase' : ''}`} />
+        )
+      ) : (
+        <p className={`font-medium text-slate-900 min-h-6 ${isTextArea ? 'whitespace-pre-line' : ''} ${name === 'nationalInsurance' ? 'uppercase' : ''}`}>
+          {formData[name]}
+        </p>
+      )}
+    </div>
+  );
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -169,11 +198,52 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Main Form Card */}
-        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12">
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 sm:p-12 relative">
+          
+          {/* Action Buttons */}
+          <div className="absolute top-6 right-8 sm:top-10 sm:right-12 z-10 flex flex-wrap justify-end items-center gap-2 sm:gap-3">
+            <Link 
+              href="/profile/security"
+              className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm transition-all text-sm hidden sm:flex items-center gap-2 mr-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-slate-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+              Security Settings
+            </Link>
+            {!isEditing ? (
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm transition-all text-sm flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+                Edit Profile
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setIsEditing(false)}
+                  disabled={saving}
+                  className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-xl border border-slate-200 transition-all text-sm disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSubmit}
+                  disabled={saving}
+                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-sm transition-all text-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            )}
+          </div>
           
           {message && (
-            <div className={`mb-8 p-4 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+            <div className={`mt-16 sm:mt-12 mb-8 p-4 rounded-xl text-sm font-semibold transition-all flex items-center gap-3 ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
               {message.type === 'success' ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -187,263 +257,129 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-10 mt-6 sm:mt-0">
             
-            {/* Section 1: Basic Information */}
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Basic Information</h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-semibold text-slate-700">First Name</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-semibold text-slate-700">Last Name</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                    required
-                  />
-                </div>
+            {/* Overview Header */}
+            <div className="flex items-center gap-5 pb-8 border-b border-slate-100 pr-0 lg:pr-[450px]">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 text-3xl font-bold border-4 border-white shadow-sm shrink-0">
+                {formData.firstName?.charAt(0)}{formData.lastName?.charAt(0)}
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Email Address</label>
-                  <input
-                    type="email"
-                    value={userEmail}
-                    disabled
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
-                    title="If you need to change this, please contact Saint Flooring"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-semibold text-slate-700">Mobile Number</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <label htmlFor="primaryLocationId" className="text-sm font-semibold text-slate-700">Primary Location</label>
-                  <select
-                    id="primaryLocationId"
-                    name="primaryLocationId"
-                    value={formData.primaryLocationId}
-                    disabled
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
-                    title="If you need to change this, please contact Saint Flooring"
-                  >
-                    <option value="" disabled>Select your location</option>
-                    {locations.map(location => (
-                      <option key={location.id} value={location.id}>{location.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Account Role</label>
-                  <input
-                    type="text"
-                    value={userRole || 'No role assigned'}
-                    disabled
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed outline-none shadow-sm"
-                    title="If you need to change this, please contact Saint Flooring"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-700">Job Title</label>
-                  <input
-                    type="text"
-                    id="jobTitle"
-                    name="jobTitle"
-                    value={formData.jobTitle}
-                    onChange={handleChange}
-                    placeholder="e.g. Site Manager"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="qualification" className="text-sm font-semibold text-slate-700">Qualification</label>
-                  <select
-                    id="qualification"
-                    name="qualification"
-                    value={formData.qualification}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                  >
-                    <option value="">None</option>
-                    <option value="SSSTS">SSSTS</option>
-                    <option value="SMSTS">SMSTS</option>
-                  </select>
+              <div>
+                {isEditing ? (
+                  <div className="flex flex-col sm:flex-row gap-2 mb-2">
+                    <input name="firstName" value={formData.firstName} onChange={handleChange} className="px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900" placeholder="First Name" />
+                    <input name="lastName" value={formData.lastName} onChange={handleChange} className="px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900" placeholder="Last Name" />
+                  </div>
+                ) : (
+                  <h3 className="text-2xl font-bold text-slate-900">{formData.firstName} {formData.lastName}</h3>
+                )}
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                    {userRole || 'Unassigned'}
+                  </span>
+                  <span className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider border ${userStatus === 'Active' ? 'bg-green-100 text-green-700 border-green-200' : (userStatus === 'Pending' || userStatus === 'Invited') ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                    {userStatus || 'Pending'}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Subcontractor Details */}
-            {userRole === 'Subcontractor' && (
+            <div className="flex flex-col gap-10">
+              
+              {/* Basic Information */}
               <div>
-                <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Subcontractor Details</h2>
-                
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
-                    <input
-                      type="text"
-                      id="companyName"
-                      name="companyName"
-                      value={formData.companyName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                      required={formData.accountType === 'Limited Company'}
-                    />
+                <h4 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Basic Information</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account Created</p>
+                    <p className="font-medium text-slate-900 min-h-6">{formattedCreatedDate}</p>
                   </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="address" className="text-sm font-semibold text-slate-700">Address</label>
-                    <textarea
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      rows={3}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm resize-none"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label htmlFor="accountType" className="text-sm font-semibold text-slate-700">Type of Account</label>
-                      <select
-                        id="accountType"
-                        name="accountType"
-                        value={formData.accountType}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                      >
-                        <option value="Self-Employed">Self-Employed</option>
-                        <option value="Limited Company">Limited Company</option>
-                        <option value="Saint Employee">Saint Employee</option>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary Location</p>
+                    {isEditing ? (
+                      <select name="primaryLocationId" value={formData.primaryLocationId} disabled className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed outline-none transition-all text-sm" title="If you need to change this, please contact Saint Flooring">
+                        <option value="">Select Location...</option>
+                        {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
                       </select>
-                    </div>
-
-                    {formData.accountType === 'Self-Employed' && (
-                      <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
-                        <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
-                        <input
-                          type="text"
-                          id="nationalInsurance"
-                          name="nationalInsurance"
-                          value={formData.nationalInsurance}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm uppercase"
-                          required={formData.accountType === 'Self-Employed'}
-                        />
-                      </div>
-                    )}
-                    
-                    {formData.accountType === 'Limited Company' && (
-                      <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
-                        <label htmlFor="companyRegNumber" className="text-sm font-semibold text-slate-700">Company Reg Number</label>
-                        <input
-                          type="text"
-                          id="companyRegNumber"
-                          name="companyRegNumber"
-                          value={formData.companyRegNumber}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                          required={formData.accountType === 'Limited Company'}
-                        />
-                      </div>
+                    ) : (
+                      <p className="font-medium text-slate-900 min-h-6">{locations.find(l => l.id === formData.primaryLocationId)?.name || ''}</p>
                     )}
                   </div>
 
-                  {formData.accountType !== 'Saint Employee' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-300">
-                      <div className="space-y-2">
-                        <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
-                        <input
-                          type="text"
-                          id="utr"
-                          name="utr"
-                          value={formData.utr}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                          required
-                        />
-                      </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Email Address</p>
+                    {isEditing ? (
+                      <input type="email" value={userEmail} disabled className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed outline-none transition-all text-sm" title="Change your email in the Security settings" />
+                    ) : (
+                      <p className="font-medium text-slate-900 min-h-6">{userEmail}</p>
+                    )}
+                  </div>
 
-                      <div className="space-y-2">
-                        <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
-                        <select
-                          id="cisStatus"
-                          name="cisStatus"
-                          value={formData.cisStatus}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                        >
+                  {renderInput('phone', 'Mobile Number', 'tel')}
+                  {renderInput('jobTitle', 'Job Title')}
+                  
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Qualification</p>
+                    {isEditing ? (
+                      <select name="qualification" value={formData.qualification} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm text-slate-700">
+                        <option value="">None</option>
+                        <option value="SSSTS">SSSTS</option>
+                        <option value="SMSTS">SMSTS</option>
+                      </select>
+                    ) : (
+                      <p className="font-medium text-slate-900 min-h-6">{formData.qualification}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Fitter Details */}
+              {(userRole === 'Fitter' || userRole === 'Subcontractor') && (
+                <div>
+                  <h4 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5">Fitter Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account Type</p>
+                      {isEditing ? (
+                        <select name="accountType" value={formData.accountType} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm text-slate-700">
+                          <option value="">None Selected</option>
+                          <option value="Self-Employed">Self-Employed</option>
+                          <option value="Limited Company">Limited Company</option>
+                          <option value="Saint Employee">Saint Employee</option>
+                        </select>
+                      ) : (
+                        <p className="font-medium text-slate-900 min-h-6">{formData.accountType}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">CIS Status</p>
+                      {isEditing ? (
+                        <select name="cisStatus" value={formData.cisStatus} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm text-slate-700">
+                          <option value="">None Selected</option>
                           <option value="20%">20% Deduction</option>
                           <option value="30%">30% Deduction</option>
                           <option value="Gross">Gross (0% Deduction)</option>
                         </select>
-                      </div>
+                      ) : (
+                        <p className="font-medium text-slate-900 min-h-6">{formData.cisStatus}</p>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
 
-            {/* Submit Button */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end items-center gap-4 sm:gap-6">
-              <Link
-                href="/profile/security"
-                className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
-              >
-                Update Email or Password
-              </Link>
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-              >
-                {saving ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving Changes...
-                  </>
-                ) : 'Save Changes'}
-              </button>
+                    {renderInput('companyName', 'Company Name')}
+                    {renderInput('companyRegNumber', 'Reg Number')}
+                    {renderInput('nationalInsurance', 'National Insurance')}
+                    {renderInput('utr', 'UTR Number')}
+                    
+                    {renderInput('address', 'Address', 'text', true)}
+                  </div>
+                </div>
+              )}
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
