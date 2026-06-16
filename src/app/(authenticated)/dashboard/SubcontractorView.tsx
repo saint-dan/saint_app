@@ -9,10 +9,10 @@ export default function SubcontractorView({ profile }: { profile: UserProfile | 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-8 sm:px-12">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back, {profile?.first_name || 'Subcontractor'}!
+            Welcome back, {profile?.first_name || 'Fitter'}!
           </h2>
           <p className="text-slate-500 mt-1">
-            This is your central hub for managing your subcontractor profile and viewing upcoming jobs.
+            This is your central hub for managing your fitter profile and viewing upcoming jobs.
           </p>
         </div>
       </div>

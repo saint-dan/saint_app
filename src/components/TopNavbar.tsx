@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ROLES } from '@/lib/constants';
 
 export default function TopNavbar({ email, profile }: { email?: string, profile: any }) {
   const router = useRouter();
@@ -82,7 +83,7 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
                   Dashboard
                 </button>
 
-                {(roleName === 'Contracts Manager' || roleName === 'Admin') && (
+                {(roleName === ROLES.INSPECTOR || roleName === ROLES.ADMIN) && (
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
@@ -97,7 +98,7 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
                   </button>
                 )}
 
-                {roleName === 'Admin' && (
+                {roleName === ROLES.ADMIN && (
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);

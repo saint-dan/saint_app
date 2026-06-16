@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { ROLES } from '@/lib/constants';
 
 interface InspectionsListProps {
   initialInspections: any[];
@@ -141,7 +142,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
           <p className="text-slate-500 mt-1">View and manage inspection reports.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {roleName === 'Admin' && (
+          {roleName === ROLES.ADMIN && (
             <Link 
               href="/inspections/edit_form"
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2 border border-slate-200"
@@ -181,7 +182,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
 
         {/* Filters & Search */}
         <div className="flex flex-col sm:flex-row w-full md:w-auto items-center gap-3">
-          {roleName === 'Admin' && (
+          {roleName === ROLES.ADMIN && (
             <select
               value={currentInspectorId}
               onChange={handleInspectorFilter}

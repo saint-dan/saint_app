@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import InspectionsList from '@/components/features/inspections/InspectionsList';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
+import { ROLES } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,7 @@ export default async function InspectionsPage({
   // Decide which Supabase client to use. For Admins, we use the service_role client
   // to bypass RLS and fetch all inspector names for the filter dropdown.
   // This is safe as it's a Server Component and the key is not exposed to the client.
-  const queryClient = (roleName === 'Admin' 
+  const queryClient = (roleName === ROLES.ADMIN 
     ? createAdminClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -71,7 +72,7 @@ export default async function InspectionsPage({
 
   // For non-admins, we still need to filter by their own ID.
   // The Admin query (using service_role) will fetch all, which is what we want.
-  const finalQuery = roleName === 'Contracts Manager' 
+  const finalQuery = roleName === ROLES.INSPECTOR 
     ? inspectionQuery.eq('inspector_id', user.id)
     : inspectionQuery;
 

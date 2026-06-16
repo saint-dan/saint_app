@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import React from 'react';
 import { render } from '@react-email/components';
 import InviteUserEmail from '@/components/emails/InviteUserEmail';
+import { ROLES } from '@/lib/constants';
 
 // Security Helper: Verify the user requesting this is an Admin
 async function verifyAdmin() {
@@ -17,7 +18,7 @@ async function verifyAdmin() {
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
   
-  if (roleName !== 'Admin') throw new Error('Unauthorized');
+  if (roleName !== ROLES.ADMIN) throw new Error('Unauthorized');
   
   return user;
 }

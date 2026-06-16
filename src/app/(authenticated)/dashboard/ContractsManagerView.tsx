@@ -23,7 +23,7 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-8 sm:px-12">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back, {profile?.first_name || 'Contracts Manager'}!
+            Welcome back, {profile?.first_name || 'Inspector'}!
           </h2>
         </div>
       </div>

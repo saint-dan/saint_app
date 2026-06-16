@@ -2,6 +2,7 @@
 
 ## Project Overview
 - **Purpose:** A premium, company-wide application designed for use by different stakeholders and roles (currently: Admin, Subcontractor, Contracts Manager). The app provides tailored dashboards and functionality depending on the user's role.
+- **Purpose:** A premium, company-wide application designed for use by different stakeholders and roles (currently: Admin, Fitter, Site Inspector). The app provides tailored dashboards and functionality depending on the user's role.
 - **Tech Stack:** Next.js (App Router), TypeScript, React, Tailwind CSS, Supabase (Database/Auth), Vercel (Hosting).
 - **Versioning Logic:** Node.js LTS (>= 18.x) and Next.js 14+. Strict adherence to package versions defined in the lockfile (`package.json`); do not introduce new major dependencies without explicit instruction.
 

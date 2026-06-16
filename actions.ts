@@ -8,6 +8,7 @@ import { Database } from '@/types/database.types';
 import React from 'react';
 import { render } from '@react-email/components';
 import InspectionReportEmail from '@/components/emails/InspectionReportEmail';
+import { ROLES } from '@/lib/constants';
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -321,7 +322,7 @@ export async function createInspectionSection(title: string) {
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') {
+  if (roleName !== ROLES.ADMIN) {
     return { success: false, error: 'Unauthorized' };
   }
 
@@ -366,7 +367,7 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') {
+  if (roleName !== ROLES.ADMIN) {
     return { success: false, error: 'Unauthorized' };
   }
 
@@ -395,7 +396,7 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
 
   const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -444,7 +445,7 @@ export async function updateInspectionQuestionOrders(updates: { id: string; disp
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
 
   const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -464,7 +465,7 @@ export async function deleteInspectionSection(sectionId: string) {
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
 
   const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -493,7 +494,7 @@ export async function deleteInspectionQuestion(questionId: string, sectionId: st
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') return { success: false, error: 'Unauthorized' };
+  if (roleName !== ROLES.ADMIN) return { success: false, error: 'Unauthorized' };
 
   const adminClient = createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -531,7 +532,7 @@ export async function deleteInspection(id: string) {
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
   // Use the service_role client to bypass RLS if the user is an Admin
-  const deleteClient = roleName === 'Admin'
+  const deleteClient = roleName === ROLES.ADMIN
     ? createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     : supabase;
 

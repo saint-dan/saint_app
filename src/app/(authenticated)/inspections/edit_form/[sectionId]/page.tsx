@@ -8,6 +8,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
 import { redirect } from 'next/navigation';
 import EditFormQuestionsList from '@/components/features/inspections/EditFormQuestionsList';
+import { ROLES } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +34,7 @@ export default async function EditSectionQuestionsPage({
   const roleData = profile?.roles as any;
   const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
 
-  if (roleName !== 'Admin') {
+  if (roleName !== ROLES.ADMIN) {
     redirect('/dashboard');
   }
 
