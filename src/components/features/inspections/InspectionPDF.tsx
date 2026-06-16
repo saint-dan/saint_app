@@ -52,13 +52,10 @@ const styles = StyleSheet.create({
 });
 
 export interface InspectionPDFProps {
+  templateName: string;
   date: string;
   inspectorName: string;
   inspectorPosition?: string;
-  builderName: string;
-  siteName: string;
-  operatives: number | string;
-  supervisor: string;
   sections: any[];
   questions: any[];
   responses: Record<string, any>;
@@ -66,13 +63,10 @@ export interface InspectionPDFProps {
 }
 
 export default function InspectionPDF({
+  templateName,
   date,
   inspectorName,
   inspectorPosition,
-  builderName,
-  siteName,
-  operatives,
-  supervisor,
   sections,
   questions,
   responses,
@@ -85,7 +79,7 @@ export default function InspectionPDF({
         {/* Header Area */}
         <View style={styles.header} fixed>
           <View>
-            <Text style={styles.title}>Site Inspection Report</Text>
+            <Text style={styles.title}>{templateName}</Text>
             <Text style={styles.subtitle}>Saint Flooring Group</Text>
           </View>
           {/* Uses standard absolute path for the public folder logo */}
@@ -97,10 +91,6 @@ export default function InspectionPDF({
           <View style={styles.metaItemFull}><Text style={styles.metaLabel}>Date of Inspection</Text><Text style={styles.metaValue}>{date}</Text></View>
           <View style={styles.metaItem}><Text style={styles.metaLabel}>Inspector</Text><Text style={styles.metaValue}>{inspectorName}</Text></View>
           <View style={styles.metaItem}><Text style={styles.metaLabel}>Position</Text><Text style={styles.metaValue}>{inspectorPosition || 'N/A'}</Text></View>
-          <View style={styles.metaItem}><Text style={styles.metaLabel}>Builder</Text><Text style={styles.metaValue}>{builderName || 'N/A'}</Text></View>
-          <View style={styles.metaItem}><Text style={styles.metaLabel}>Site</Text><Text style={styles.metaValue}>{siteName || 'N/A'}</Text></View>
-          <View style={styles.metaItem}><Text style={styles.metaLabel}>Inspector Qualification</Text><Text style={styles.metaValue}>{supervisor || 'N/A'}</Text></View>
-          <View style={styles.metaItem}><Text style={styles.metaLabel}>Operatives on Site</Text><Text style={styles.metaValue}>{operatives || '0'}</Text></View>
         </View>
 
         {/* Checklist Content */}

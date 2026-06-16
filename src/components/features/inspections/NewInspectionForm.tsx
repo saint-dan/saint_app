@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { saveInspection, createBuilder, createSite, createPosition, deleteInspection } from '../../../../actions';
+import { saveInspection, createPosition, deleteInspection } from '../../../../actions';
 import SignaturePad from '@/components/ui/SignaturePad';
 import PhotoUploader from '@/components/ui/PhotoUploader';
 import { createClient } from '@/utils/supabase/client';
@@ -13,8 +13,7 @@ import InspectionPDF from './InspectionPDF';
 interface NewInspectionFormProps {
   profile: any;
   templateId: string;
-  builders: any[];
-  sites: any[];
+  templateName: string;
   sections: any[];
   questions: any[];
   positions: any[];
@@ -30,8 +29,7 @@ interface NewInspectionFormProps {
 export default function NewInspectionForm({
   profile,
   templateId,
-  builders,
-  sites,
+  templateName,
   sections,
   questions,
   positions,
@@ -66,17 +64,7 @@ export default function NewInspectionForm({
   }, [currentPage]);
 
   // State: Local Reference Data for inline creation
-  const [localBuilders, setLocalBuilders] = useState(builders);
-  const [localSites, setLocalSites] = useState(sites);
   const [localPositions, setLocalPositions] = useState(positions);
-
-  const [isAddingBuilder, setIsAddingBuilder] = useState(false);
-  const [newBuilderName, setNewBuilderName] = useState('');
-  const [isSavingBuilder, setIsSavingBuilder] = useState(false);
-
-  const [isAddingSite, setIsAddingSite] = useState(false);
-  const [newSiteName, setNewSiteName] = useState('');
-  const [isSavingSite, setIsSavingSite] = useState(false);
 
   const [addingPositionIndex, setAddingPositionIndex] = useState<number | null>(null);
   const [newPositionName, setNewPositionName] = useState('');
@@ -84,10 +72,6 @@ export default function NewInspectionForm({
 
   // State: Form Header Data
   const [headerData, setHeaderData] = useState({
-    builderId: initialHeaderData?.builderId || '',
-    siteId: initialHeaderData?.siteId || '',
-    operativesOnSite: initialHeaderData?.operativesOnSite || '',
-    supervisorQualification: initialHeaderData?.supervisorQualification || profile?.qualification || '',
     inspectionDate: initialDate || new Date().toISOString().split('T')[0]
   });
 
@@ -124,11 +108,7 @@ export default function NewInspectionForm({
 
   const handleHeaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (name === 'builderId') {
-      setHeaderData({ ...headerData, builderId: value, siteId: '' }); // Clear site when builder changes
-    } else {
-      setHeaderData({ ...headerData, [name]: value });
-    }
+    setHeaderData({ ...headerData, [name]: value });
   };
 
   const handleResponseChange = (questionId: string, field: 'isCompliant' | 'comments' | 'photoUrls', value: any) => {
@@ -144,46 +124,6 @@ export default function NewInspectionForm({
       newSigs[index] = { ...newSigs[index], [field]: value };
       return newSigs;
     });
-  };
-
-  const handleCreateBuilder = async () => {
-    if (!newBuilderName.trim()) return;
-    setIsSavingBuilder(true);
-    try {
-      const res = await createBuilder(newBuilderName);
-      if (res.success && res.builder) {
-        setLocalBuilders(prev => [...prev, res.builder]);
-        setHeaderData(prev => ({ ...prev, builderId: res.builder.id, siteId: '' }));
-        setIsAddingBuilder(false);
-        setNewBuilderName('');
-      } else {
-        setError(res.error || 'Failed to create builder');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
-    } finally {
-      setIsSavingBuilder(false);
-    }
-  };
-
-  const handleCreateSite = async () => {
-    if (!newSiteName.trim() || !headerData.builderId) return;
-    setIsSavingSite(true);
-    try {
-      const res = await createSite(newSiteName, headerData.builderId);
-      if (res.success && res.site) {
-        setLocalSites(prev => [...prev, res.site]);
-        setHeaderData(prev => ({ ...prev, siteId: res.site.id }));
-        setIsAddingSite(false);
-        setNewSiteName('');
-      } else {
-        setError(res.error || 'Failed to create site');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
-    } finally {
-      setIsSavingSite(false);
-    }
   };
 
   const handleCreatePosition = async () => {
@@ -215,10 +155,6 @@ export default function NewInspectionForm({
       const submissionData = {
         inspectionId: inspectionId || undefined,
         templateId,
-        builderId: headerData.builderId,
-        siteId: headerData.siteId,
-        operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
-        supervisorQualification: headerData.supervisorQualification,
         inspectionDate: headerData.inspectionDate,
         responses,
         signatures: currentSignatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
@@ -241,12 +177,49 @@ export default function NewInspectionForm({
     }
   };
 
+  // Advanced Validation before navigating
+  const validateCurrentPage = () => {
+    setError(null);
+    if (isReadOnly) return true;
+
+    // Native HTML5 validation for inputs (this covers required text/number/date fields)
+    if (formRef.current && !formRef.current.reportValidity()) {
+      return false;
+    }
+
+    // Custom validation for Section Pages
+    if (currentPage > 0 && currentPage <= sections.length) {
+      const section = sections[currentPage - 1];
+      const sectionQuestions = questions.filter(q => q.section_id === section.id);
+
+      for (const q of sectionQuestions) {
+        const resp = responses[q.id];
+        const typeCode = q.response_types?.code || 'YES_NO_NA_COMMENTS';
+
+        // Mandatory check for custom Yes/No/NA buttons
+        if (q.is_mandatory && (typeCode === 'YES_NO_NA' || typeCode === 'YES_NO_NA_COMMENTS')) {
+          if (resp.isCompliant === null) {
+            setError(`Please answer the mandatory question: "${q.question_text}"`);
+            return false;
+          }
+        }
+
+        // Comments required if 'No' on YES_NO_NA_COMMENTS (mandatory or not)
+        if (typeCode === 'YES_NO_NA_COMMENTS' && resp.isCompliant === false && (!resp.comments || !resp.comments.trim())) {
+          setError(`Comments are required for "No" answers (see: "${q.question_text}")`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   const handleNext = async () => {
     if (isReadOnly) {
       setCurrentPage(prev => prev + 1);
       return;
     }
-    if (formRef.current && !formRef.current.reportValidity()) return;
+    if (!validateCurrentPage()) return;
     const saved = await autoSaveDraft(undefined, 'next');
     if (saved) setCurrentPage(prev => prev + 1);
   };
@@ -268,7 +241,7 @@ export default function NewInspectionForm({
       setError('Please complete the current signature before adding another.');
       return;
     }
-    if (formRef.current && !formRef.current.reportValidity()) return;
+    if (!validateCurrentPage()) return;
 
     const newSignatures = [...signatures, { name: '', positionId: '', signatureData: null, signedAt: new Date().toISOString() }];
     setSignatures(newSignatures);
@@ -278,12 +251,13 @@ export default function NewInspectionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateCurrentPage()) return;
+
     if (currentPage < totalPages - 1) {
       await handleNext();
       return;
     }
     
-    if (formRef.current && !formRef.current.reportValidity()) return;
     
     if (signatures.some(s => !s.name.trim() || !s.positionId || !s.signatureData)) {
       setError('Please complete all names, positions, and drawings for all signatures.');
@@ -305,8 +279,6 @@ export default function NewInspectionForm({
       // Generate and upload PDF entirely on the client to avoid server timeout/memory issues
       const supabase = createClient();
       
-      const builderName = localBuilders.find(b => b.id === headerData.builderId)?.name || 'N/A';
-      const siteName = localSites.find(s => s.id === headerData.siteId)?.name || 'N/A';
       const sigsWithNames = signatures.map(sig => ({
         ...sig,
         positionName: localPositions.find(p => p.id === sig.positionId)?.name || 'Signee',
@@ -315,13 +287,10 @@ export default function NewInspectionForm({
 
       const pdfBlob = await pdf(
         <InspectionPDF
+          templateName={templateName}
           date={displayDate}
           inspectorName={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()}
           inspectorPosition={profile?.job_title || ''}
-          builderName={builderName}
-          siteName={siteName}
-          operatives={headerData.operativesOnSite || 0}
-          supervisor={headerData.supervisorQualification || ''}
           sections={sections}
           questions={questions}
           responses={responses}
@@ -330,8 +299,7 @@ export default function NewInspectionForm({
       ).toBlob();
 
       setSubmitStatusMessage('Uploading secure document...');
-      const sanitizedSiteName = siteName.replace(/[^a-zA-Z0-9_-]/g, '_');
-      const fileName = `Saint_Inspection_${sanitizedSiteName}_${Date.now()}.pdf`;
+      const fileName = `Saint_Inspection_${Date.now()}.pdf`;
 
       const { error: uploadError } = await supabase.storage
         .from('inspection_reports')
@@ -349,10 +317,6 @@ export default function NewInspectionForm({
       const submissionData = {
         inspectionId: inspectionId || undefined,
         templateId,
-        builderId: headerData.builderId,
-        siteId: headerData.siteId,
-        operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
-        supervisorQualification: headerData.supervisorQualification,
         inspectionDate: headerData.inspectionDate,
         responses,
         signatures: signatures.map(s => ({ ...s, signatureData: s.signatureData || '' })),
@@ -417,9 +381,6 @@ export default function NewInspectionForm({
     }
   };
 
-  // Dynamically filter available sites based on the selected builder
-  const filteredSites = localSites.filter(s => !headerData.builderId || s.builder_id === headerData.builderId);
-
   return (
     <>
       {/* Page Title & Cancel Button */}
@@ -438,11 +399,6 @@ export default function NewInspectionForm({
             <span className={`px-3 py-1 font-bold text-xs rounded-lg border uppercase tracking-wider ${isReadOnly ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
               {isReadOnly ? 'Completed' : 'Draft'}
             </span>
-            {currentPage > 0 && headerData.builderId && headerData.siteId && (
-              <span className="text-sm font-semibold text-slate-600">
-                {localBuilders.find(b => b.id === headerData.builderId)?.name || 'N/A'} - {localSites.find(s => s.id === headerData.siteId)?.name || 'N/A'}
-              </span>
-            )}
           </div>
         </div>
         {!isReadOnly ? (
@@ -461,7 +417,7 @@ export default function NewInspectionForm({
               type="button"
               disabled={isSubmitting || isDeleting}
               onClick={async () => {
-                if (headerData.builderId) await autoSaveDraft(undefined, 'draft');
+                await autoSaveDraft(undefined, 'draft');
                 router.push('/inspections?status=Completed');
               }}
               className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
@@ -548,112 +504,7 @@ export default function NewInspectionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-            {/* Builder Selection / Creation */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label htmlFor="builderId" className="text-sm font-semibold text-slate-700">Builder</label>
-                {!isReadOnly && !isAddingBuilder && (
-                  <button type="button" onClick={() => setIsAddingBuilder(true)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-                    + Add New
-                  </button>
-                )}
-              </div>
-              {isAddingBuilder ? (
-                <div className="flex gap-2 animate-in fade-in zoom-in-95 duration-200">
-                  <input
-                    type="text"
-                    value={newBuilderName}
-                    onChange={(e) => setNewBuilderName(e.target.value)}
-                    placeholder="Builder Name..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
-                    autoFocus
-                  />
-                  <button type="button" onClick={handleCreateBuilder} disabled={isSavingBuilder} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 shrink-0">
-                    {isSavingBuilder ? '...' : 'Save'}
-                  </button>
-                  <button type="button" onClick={() => setIsAddingBuilder(false)} disabled={isSavingBuilder} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors shrink-0">
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <select
-                  id="builderId"
-                  name="builderId"
-                  value={headerData.builderId}
-                  onChange={handleHeaderChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700"
-                  required
-                >
-                  <option value="" disabled>Select a Builder</option>
-                  {localBuilders.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            {/* Site Selection / Creation */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label htmlFor="siteId" className="text-sm font-semibold text-slate-700">Site</label>
-                {!isReadOnly && !isAddingSite && headerData.builderId && (
-                  <button type="button" onClick={() => setIsAddingSite(true)} className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-                    + Add New
-                  </button>
-                )}
-              </div>
-              {isAddingSite ? (
-                <div className="flex gap-2 animate-in fade-in zoom-in-95 duration-200">
-                  <input
-                    type="text"
-                    value={newSiteName}
-                    onChange={(e) => setNewSiteName(e.target.value)}
-                    placeholder="Site Name..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
-                    autoFocus
-                  />
-                  <button type="button" onClick={handleCreateSite} disabled={isSavingSite} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm disabled:opacity-50 shrink-0">
-                    {isSavingSite ? '...' : 'Save'}
-                  </button>
-                  <button type="button" onClick={() => setIsAddingSite(false)} disabled={isSavingSite} className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors shrink-0">
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <select
-                  id="siteId"
-                  name="siteId"
-                  value={headerData.siteId}
-                  onChange={handleHeaderChange}
-                  disabled={!headerData.builderId}
-                  className={`w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-slate-700 ${!headerData.builderId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  required
-                >
-                  <option value="" disabled>Select a Site</option>
-                  {filteredSites.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label htmlFor="operativesOnSite" className="text-sm font-semibold text-slate-700">Operatives on Site</label>
-              <input
-                type="number"
-                id="operativesOnSite"
-                name="operativesOnSite"
-                value={headerData.operativesOnSite}
-                onChange={handleHeaderChange}
-                min="0"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
-                required
-              />
-            </div>
-
+          <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
               <label htmlFor="inspectionDate" className="text-sm font-semibold text-slate-700">Inspection Date</label>
               <input
@@ -697,7 +548,10 @@ export default function NewInspectionForm({
                     return (
                       <div key={q.id} className="p-6 sm:px-8 flex flex-col gap-4 hover:bg-slate-50/50 transition-colors">
                         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                          <p className="text-slate-800 font-medium text-sm sm:text-base flex-1">{q.question_text}</p>
+                          <p className="text-slate-800 font-medium text-sm sm:text-base flex-1">
+                            {q.question_text}
+                            {q.is_mandatory && <span className="text-red-500 font-bold ml-1.5" title="Required">*</span>}
+                          </p>
                           
                           {/* Yes / No / N-A Toggle */}
                           {showToggle && (
@@ -749,6 +603,7 @@ export default function NewInspectionForm({
                                 placeholder="Enter your response..."
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
                                 disabled={isReadOnly}
+                                required={q.is_mandatory}
                               />
                             )}
                             {responseTypeCode === 'DATE' && (
@@ -758,6 +613,7 @@ export default function NewInspectionForm({
                                 onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm text-slate-700"
                                 disabled={isReadOnly}
+                                required={q.is_mandatory}
                               />
                             )}
                             {responseTypeCode === 'INTEGER' && (
@@ -777,6 +633,7 @@ export default function NewInspectionForm({
                                 placeholder="0"
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
                                 disabled={isReadOnly}
+                                required={q.is_mandatory}
                               />
                             )}
                             {(responseTypeCode === 'DECIMAL' || responseTypeCode === 'CURRENCY') && (
@@ -798,6 +655,7 @@ export default function NewInspectionForm({
                                   placeholder="0.00"
                                   className={`w-full pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm ${responseTypeCode === 'CURRENCY' ? 'pl-8' : 'px-4'}`}
                                   disabled={isReadOnly}
+                                  required={q.is_mandatory}
                                 />
                               </div>
                             )}

@@ -42,6 +42,7 @@ export type Database = {
           display_order: number
           id: string
           is_active: boolean | null
+          is_mandatory: boolean | null
           question_text: string
           response_type_id: string | null
           section_id: string | null
@@ -52,6 +53,7 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean | null
+          is_mandatory?: boolean | null
           question_text: string
           response_type_id?: string | null
           section_id?: string | null
@@ -62,6 +64,7 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean | null
+          is_mandatory?: boolean | null
           question_text?: string
           response_type_id?: string | null
           section_id?: string | null

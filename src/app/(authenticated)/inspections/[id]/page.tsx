@@ -31,17 +31,12 @@ export default async function InspectionFormPage(props: {
 
   const initialResponses: Record<string, any> = {};
   let initialSignatures: any[] = [];
-  let initialHeaderData = {
-    builderId: '',
-    siteId: '',
-    operativesOnSite: '',
-    supervisorQualification: ''
-  };
+  let initialHeaderData = {};
 
   // 1. Fetch the specific inspection
   const { data: inspection } = await supabase
     .from('site_inspections')
-    .select('*')
+    .select('*, inspection_templates(name)')
     .eq('id', params.id)
     .single();
 
@@ -78,17 +73,8 @@ export default async function InspectionFormPage(props: {
     signedAt: s.created_at
   })) || [];
 
-  initialHeaderData = {
-    builderId: inspection.builder_id || '',
-    siteId: inspection.site_id || '',
-    operativesOnSite: inspection.operatives_on_site || '',
-    supervisorQualification: inspection.supervisor_qualification || ''
-  };
-
   // 4. Fetch reference data (used for both New and Edit modes)
   const { data: profile } = await supabase.from('users').select('first_name, last_name, job_title, qualification').eq('id', user.id).single();
-  const { data: builders } = await supabase.from('builders').select('id, name').eq('is_active', true).order('name');
-  const { data: sites } = await supabase.from('sites').select('id, name, builder_id').eq('is_active', true).order('name');
   const { data: positions } = await supabase.from('positions').select('id, name').eq('is_active', true).order('name');
 
   const currentTemplateId = inspection.template_id;
@@ -100,12 +86,13 @@ export default async function InspectionFormPage(props: {
     ? await supabase.from('inspection_questions').select('*, response_types(code)').in('section_id', sectionIds).eq('is_active', true).order('display_order')
     : { data: [] };
 
+  const templateData = inspection.inspection_templates as any;
+  const templateName = Array.isArray(templateData) ? templateData[0]?.name : templateData?.name || 'Site Inspection Report';
+
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <NewInspectionForm
         profile={profile}
-        builders={builders || []}
-        sites={sites || []}
         sections={sections || []}
         questions={questions || []}
         positions={positions || []}
@@ -119,6 +106,7 @@ export default async function InspectionFormPage(props: {
         isReadOnly={inspection?.status === 'Completed'}
         pdfUrl={inspection?.pdf_url}
         templateId={currentTemplateId}
+        templateName={templateName}
       />
     </div>
   );

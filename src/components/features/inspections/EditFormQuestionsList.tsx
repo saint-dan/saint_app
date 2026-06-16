@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createInspectionQuestion, updateInspectionQuestionOrders, deleteInspectionQuestion } from '../../../../actions';
+import { createInspectionQuestion, updateInspectionQuestion, updateInspectionQuestionOrders, deleteInspectionQuestion } from '../../../../actions';
 
 export interface QuestionData {
   id: string;
   question_text: string;
   display_order: number;
   allow_photos?: boolean | null;
+  is_mandatory?: boolean | null;
   response_type_id: string | null;
   response_types: { name: string } | null;
 }
@@ -36,14 +37,20 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
   const [newQuestionText, setNewQuestionText] = useState('');
   const [newResponseTypeId, setNewResponseTypeId] = useState(responseTypes[0]?.id || '');
   const [newAllowPhotos, setNewAllowPhotos] = useState(false);
+  const [newIsMandatory, setNewIsMandatory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Delete Question Modal State
   const [questionToDelete, setQuestionToDelete] = useState<QuestionData | null>(null);
   const [isDeletingQuestion, setIsDeletingQuestion] = useState(false);
 
-  // View Question Modal State
-  const [selectedQuestion, setSelectedQuestion] = useState<QuestionData | null>(null);
+  // Edit Question Modal State
+  const [editingQuestion, setEditingQuestion] = useState<QuestionData | null>(null);
+  const [editQuestionText, setEditQuestionText] = useState('');
+  const [editResponseTypeId, setEditResponseTypeId] = useState('');
+  const [editAllowPhotos, setEditAllowPhotos] = useState(false);
+  const [editIsMandatory, setEditIsMandatory] = useState(false);
+  const [isUpdatingQuestion, setIsUpdatingQuestion] = useState(false);
 
   // Drag and Drop Handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -82,7 +89,7 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
     if (!newQuestionText.trim() || !newResponseTypeId) return;
     
     setIsSubmitting(true);
-    const result = await createInspectionQuestion(sectionId, newQuestionText.trim(), newResponseTypeId, newAllowPhotos);
+    const result = await createInspectionQuestion(sectionId, newQuestionText.trim(), newResponseTypeId, newAllowPhotos, newIsMandatory);
     setIsSubmitting(false);
 
     if (result.success && result.question) {
@@ -90,7 +97,34 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
       setNewQuestionText('');
       setNewResponseTypeId(responseTypes[0]?.id || '');
       setNewAllowPhotos(false);
+      setNewIsMandatory(false);
       setIsAddModalOpen(false);
+      router.refresh();
+    } else {
+      console.error(result.error);
+    }
+  };
+
+  // Edit Question Handlers
+  const openEditModal = (q: QuestionData) => {
+    setEditingQuestion(q);
+    setEditQuestionText(q.question_text);
+    setEditResponseTypeId(q.response_type_id || responseTypes[0]?.id || '');
+    setEditAllowPhotos(q.allow_photos || false);
+    setEditIsMandatory(q.is_mandatory || false);
+  };
+
+  const handleUpdateQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingQuestion || !editQuestionText.trim() || !editResponseTypeId) return;
+    
+    setIsUpdatingQuestion(true);
+    const result = await updateInspectionQuestion(editingQuestion.id, editQuestionText.trim(), editResponseTypeId, editAllowPhotos, editIsMandatory, sectionId);
+    setIsUpdatingQuestion(false);
+
+    if (result.success && result.question) {
+      setQuestions(questions.map(q => q.id === editingQuestion.id ? result.question : q));
+      setEditingQuestion(null);
       router.refresh();
     } else {
       console.error(result.error);
@@ -159,7 +193,7 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
               onDragEnter={(e) => handleDragEnter(e, index)}
               onDragEnd={handleDragEnd}
               onDragOver={(e) => e.preventDefault()}
-              onClick={() => setSelectedQuestion(question)}
+              onClick={() => openEditModal(question)}
               className={`flex items-center gap-4 bg-white p-4 rounded-2xl border transition-all select-none cursor-pointer
                 ${dragOverIndex === index ? 'border-blue-500 shadow-md scale-[1.01] z-10' : 'border-slate-100 hover:border-blue-200 shadow-[0_4px_15px_rgb(0,0,0,0.02)]'}
                 ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}
@@ -177,9 +211,14 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
                 <h3 className="font-medium text-slate-900 truncate">{question.question_text}</h3>
               </div>
 
-              {/* Badge */}
-              <div className="shrink-0 px-3 py-1 bg-slate-50 text-slate-500 rounded-lg text-xs font-bold border border-slate-100">
-                {getResponseTypeName(question)}
+              {/* Badges */}
+              <div className="flex items-center gap-2">
+                <div className="shrink-0 px-3 py-1 bg-slate-50 text-slate-500 rounded-lg text-xs font-bold border border-slate-100">
+                  {getResponseTypeName(question)}
+                </div>
+                <div className={`shrink-0 px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold border border-red-100 ${question.is_mandatory ? 'visible' : 'invisible'}`}>
+                  Mandatory
+                </div>
               </div>
 
               {/* Photo Icon Column */}
@@ -220,17 +259,31 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
                   ))}
                 </select>
               </div>
-              <div className="mb-8 flex items-center gap-3">
-                <input 
-                  type="checkbox" 
-                  id="allowPhotos"
-                  checked={newAllowPhotos}
-                  onChange={(e) => setNewAllowPhotos(e.target.checked)}
-                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
-                />
-                <label htmlFor="allowPhotos" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
-                  Allow photo uploads for this question
-                </label>
+              <div className="mb-8 flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="allowPhotos"
+                    checked={newAllowPhotos}
+                    onChange={(e) => setNewAllowPhotos(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                  />
+                  <label htmlFor="allowPhotos" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                    Allow photo uploads for this question
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="isMandatory"
+                    checked={newIsMandatory}
+                    onChange={(e) => setNewIsMandatory(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                  />
+                  <label htmlFor="isMandatory" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                    Make question mandatory (user must answer)
+                  </label>
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
@@ -264,58 +317,78 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
         </div>
       )}
 
-      {/* View Question Modal */}
-      {selectedQuestion && (
+      {/* Edit Question Modal */}
+      {editingQuestion && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-extrabold text-slate-900">Question Details</h2>
-              <button onClick={() => setSelectedQuestion(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-4 mb-8">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Question Text</span>
-                <p className="text-slate-900 font-medium">{selectedQuestion.question_text}</p>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">Edit Question</h2>
+            <form onSubmit={handleUpdateQuestion}>
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Question Text</label>
+                <input type="text" required value={editQuestionText} onChange={(e) => setEditQuestionText(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="e.g. Is the site clean?" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Response Type</span>
-                  <p className="text-slate-900 font-medium">{getResponseTypeName(selectedQuestion)}</p>
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Response Type</label>
+                <select 
+                  required 
+                  value={editResponseTypeId} 
+                  onChange={(e) => setEditResponseTypeId(e.target.value)} 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                >
+                  <option value="" disabled>Select a response type...</option>
+                  {responseTypes.map(rt => (
+                    <option key={rt.id} value={rt.id}>{rt.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-8 flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="editAllowPhotos"
+                    checked={editAllowPhotos}
+                    onChange={(e) => setEditAllowPhotos(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                  />
+                  <label htmlFor="editAllowPhotos" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                    Allow photo uploads for this question
+                  </label>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Photos Allowed</span>
-                  <p className="text-slate-900 font-medium">{selectedQuestion.allow_photos ? 'Yes' : 'No'}</p>
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="editIsMandatory"
+                    checked={editIsMandatory}
+                    onChange={(e) => setEditIsMandatory(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                  />
+                  <label htmlFor="editIsMandatory" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                    Make question mandatory
+                  </label>
                 </div>
               </div>
-            </div>
-
-            <div className="flex justify-between items-center gap-3">
-              <button 
-                type="button" 
-                onClick={() => {
-                  setQuestionToDelete(selectedQuestion);
-                  setSelectedQuestion(null);
-                }} 
-                className="px-5 py-2.5 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setSelectedQuestion(null)} 
-                className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-              >
-                Close
-              </button>
-            </div>
+              <div className="flex justify-between items-center gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setQuestionToDelete(editingQuestion);
+                    setEditingQuestion(null);
+                  }} 
+                  className="px-5 py-2.5 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center gap-2 shrink-0"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setEditingQuestion(null)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors shrink-0">Cancel</button>
+                  <button type="submit" disabled={isUpdatingQuestion || !editQuestionText.trim() || !editResponseTypeId} className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl shadow-sm disabled:opacity-50 transition-all">
+                    {isUpdatingQuestion ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

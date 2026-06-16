@@ -112,10 +112,6 @@ export async function updatePassword(formData: FormData) {
 export async function saveInspection(formData: {
   inspectionId?: string;
   templateId: string;
-  builderId: string;
-  siteId: string;
-  operativesOnSite: number;
-  supervisorQualification: string;
   inspectionDate: string;
   responses: Record<string, { isCompliant: boolean | null; comments: string; photoUrls: string[] }>;
   signatures: Array<{ name: string; positionId: string; signatureData: string }>;
@@ -129,15 +125,24 @@ export async function saveInspection(formData: {
     return { success: false, error: 'User not authenticated' };
   }
 
+  const { data: profile } = await supabase
+    .from('users')
+    .select('first_name, last_name, roles(name)')
+    .eq('id', user.id)
+    .single();
+
+  const roleData = profile?.roles as any;
+  const roleName = Array.isArray(roleData) ? roleData[0]?.name : roleData?.name;
+
+  const dbClient = roleName === ROLES.ADMIN
+    ? createAdminClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    : supabase;
+
   let currentInspectionId = formData.inspectionId;
 
   const headerPayload: any = {
       inspector_id: user.id,
       template_id: formData.templateId,
-      builder_id: formData.builderId || null,
-      site_id: formData.siteId || null,
-      operatives_on_site: formData.operativesOnSite || null,
-      supervisor_qualification: formData.supervisorQualification || null,
       status: formData.status,
       inspection_date: formData.inspectionDate
   };
@@ -147,13 +152,13 @@ export async function saveInspection(formData: {
   }
 
   if (currentInspectionId) {
-    const { error } = await supabase
+    const { error } = await dbClient
       .from('site_inspections')
       .update(headerPayload)
       .eq('id', currentInspectionId);
     if (error) return { success: false, error: 'Failed to update inspection: ' + error.message };
   } else {
-    const { data, error } = await supabase
+    const { data, error } = await dbClient
       .from('site_inspections')
       .insert(headerPayload)
       .select()
@@ -165,7 +170,7 @@ export async function saveInspection(formData: {
 
   // 2. Refresh Checklist Responses
   if (currentInspectionId) {
-    await supabase.from('inspection_responses').delete().eq('inspection_id', currentInspectionId);
+    await dbClient.from('inspection_responses').delete().eq('inspection_id', currentInspectionId);
 
     const responseRecords = Object.entries(formData.responses)
       .filter(([_, answer]) => answer.isCompliant !== null || answer.comments !== '' || answer.photoUrls.length > 0)
@@ -178,7 +183,7 @@ export async function saveInspection(formData: {
       }));
 
     if (responseRecords.length > 0) {
-      const { error: responsesError } = await supabase
+      const { error: responsesError } = await dbClient
         .from('inspection_responses')
         .insert(responseRecords);
 
@@ -186,7 +191,7 @@ export async function saveInspection(formData: {
     }
 
     // 3. Refresh Signatures
-    await supabase.from('inspection_signatures').delete().eq('inspection_id', currentInspectionId);
+    await dbClient.from('inspection_signatures').delete().eq('inspection_id', currentInspectionId);
 
     const validSignatures = formData.signatures.filter(s => s.name && s.signatureData);
     if (validSignatures.length > 0) {
@@ -196,7 +201,7 @@ export async function saveInspection(formData: {
         position_id: s.positionId || null,
         signature_data: s.signatureData
       }));
-      const { error: sigError } = await supabase.from('inspection_signatures').insert(signatureRecords);
+      const { error: sigError } = await dbClient.from('inspection_signatures').insert(signatureRecords);
       if (sigError) return { success: false, error: 'Failed to save signatures: ' + sigError.message };
     }
   }
@@ -204,32 +209,18 @@ export async function saveInspection(formData: {
   // 4. Send to Zapier Webhook if Completed
   if (formData.status === 'Completed') {
     try {
-      const { data: profile } = await supabase.from('users').select('first_name, last_name').eq('id', user.id).single();
-      
-      let builderData = null;
-      if (formData.builderId) {
-        const { data } = await supabase.from('builders').select('name').eq('id', formData.builderId).single();
-        builderData = data;
-      }
-
-      let siteData = null;
-      if (formData.siteId) {
-        const { data } = await supabase.from('sites').select('name').eq('id', formData.siteId).single();
-        siteData = data;
-      }
-
       const inspectorName = `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
       const displayDate = new Date(formData.inspectionDate).toLocaleDateString('en-GB', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
 
-      const subject = `Site Inspection Report - ${siteData?.name || 'N/A'} (${builderData?.name || 'N/A'})`;
+      const subject = `Site Inspection Report - ${displayDate}`;
 
       // Construct the HTML Email Body
       const htmlBody = await render(React.createElement(InspectionReportEmail, {
         inspectorName,
-        siteName: siteData?.name || 'N/A',
-        builderName: builderData?.name || 'N/A',
+        siteName: 'See Report',
+        builderName: 'See Report',
         date: displayDate
       }));
 
@@ -238,8 +229,8 @@ export async function saveInspection(formData: {
         subject,
         inspectorName,
         email: user.email || '',
-        siteName: siteData?.name || 'N/A',
-        builderName: builderData?.name || 'N/A',
+        siteName: 'See Report',
+        builderName: 'See Report',
         date: displayDate,
         attachments: formData.pdfUrl ? [formData.pdfUrl] : [],
         htmlBody
@@ -270,48 +261,6 @@ export async function saveInspection(formData: {
   revalidatePath('/dashboard');
   revalidatePath('/inspections');
   return { success: true, inspectionId: currentInspectionId };
-}
-
-export async function createBuilder(name: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: 'User not authenticated' };
-  }
-
-  const { data, error } = await supabase
-    .from('builders')
-    .insert({ name, is_active: true })
-    .select('id, name')
-    .single();
-
-  if (error || !data) {
-    return { success: false, error: 'Failed to create builder: ' + error?.message };
-  }
-
-  return { success: true, builder: data };
-}
-
-export async function createSite(name: string, builderId: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: 'User not authenticated' };
-  }
-
-  const { data, error } = await supabase
-    .from('sites')
-    .insert({ name, builder_id: builderId, is_active: true })
-    .select('id, name, builder_id')
-    .single();
-
-  if (error || !data) {
-    return { success: false, error: 'Failed to create site: ' + error?.message };
-  }
-
-  return { success: true, site: data };
 }
 
 export async function createPosition(name: string) {
@@ -378,7 +327,7 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
   return { success: true };
 }
 
-export async function createInspectionQuestion(sectionId: string, questionText: string, responseTypeId: string, allowPhotos: boolean = false) {
+export async function createInspectionQuestion(sectionId: string, questionText: string, responseTypeId: string, allowPhotos: boolean = false, isMandatory: boolean = false) {
   const { adminClient, error: authError } = await requireAdmin();
   if (authError || !adminClient) {
     return { success: false, error: authError };
@@ -401,6 +350,7 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
       question_text: questionText,
       response_type_id: responseTypeId,
       allow_photos: allowPhotos,
+      is_mandatory: isMandatory,
       display_order: nextOrder,
       is_active: true
     })
@@ -409,12 +359,45 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
       question_text,
       display_order,
       allow_photos,
+      is_mandatory,
       response_type_id,
       response_types (name)
     `)
     .single();
 
   if (insertError || !data) return { success: false, error: 'Failed to create question: ' + insertError?.message };
+
+  revalidatePath(`/inspections/edit_form/${sectionId}`);
+  return { success: true, question: data };
+}
+
+export async function updateInspectionQuestion(id: string, questionText: string, responseTypeId: string, allowPhotos: boolean, isMandatory: boolean, sectionId: string) {
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
+
+  const { data, error: updateError } = await adminClient
+    .from('inspection_questions')
+    .update({
+      question_text: questionText,
+      response_type_id: responseTypeId,
+      allow_photos: allowPhotos,
+      is_mandatory: isMandatory,
+    })
+    .eq('id', id)
+    .select(`
+      id,
+      question_text,
+      display_order,
+      allow_photos,
+      is_mandatory,
+      response_type_id,
+      response_types (name)
+    `)
+    .single();
+
+  if (updateError || !data) return { success: false, error: 'Failed to update question: ' + updateError?.message };
 
   revalidatePath(`/inspections/edit_form/${sectionId}`);
   return { success: true, question: data };

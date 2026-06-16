@@ -65,8 +65,6 @@ export default async function InspectionsPage({
       pdf_url,
       comments,
       inspector_id,
-      builders(name),
-      sites(name),
       users(first_name, last_name),
       inspection_templates(name)
     `)
@@ -120,11 +118,10 @@ export default async function InspectionsPage({
   if (query) {
     const lowerQuery = query.toLowerCase();
     filteredInspections = filteredInspections.filter(i => {
-      const builderName = getNestedName(i.builders).toLowerCase();
-      const siteName = getNestedName(i.sites).toLowerCase();
       const inspectorName = getUserName(i.users).toLowerCase();
+      const comments = (i.comments || '').toLowerCase();
       
-      return builderName.includes(lowerQuery) || siteName.includes(lowerQuery) || inspectorName.includes(lowerQuery);
+      return inspectorName.includes(lowerQuery) || comments.includes(lowerQuery);
     });
   }
 
