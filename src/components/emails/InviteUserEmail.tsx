@@ -39,10 +39,10 @@ export default function InviteUserEmail({
 }
 
 const main = { backgroundColor: '#f8fafc', padding: '40px 0', fontFamily: 'Helvetica, Arial, sans-serif' };
-const container = { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', margin: '0 auto', padding: '30px', maxWidth: '600px' };
+const container = { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', margin: '0 auto', padding: '30px', width: '100%', maxWidth: '600px' };
 const header = { borderBottom: '2px solid #2563eb', paddingBottom: '15px', marginBottom: '20px' };
-const title = { fontSize: '24px', fontWeight: 'bold', color: '#1e3a8a', margin: '0' };
+const title = { fontSize: '24px', fontWeight: 'bold', color: '#1e3a8a', margin: '0', wordBreak: 'normal' as const, overflowWrap: 'normal' as const, hyphens: 'none' as const };
 const body = { padding: '10px 0' };
-const text = { fontSize: '16px', color: '#334155', lineHeight: '1.6', marginBottom: '15px' };
+const text = { fontSize: '16px', color: '#334155', lineHeight: '1.6', marginBottom: '15px', wordBreak: 'normal' as const, overflowWrap: 'normal' as const, hyphens: 'none' as const };
 const buttonContainer = { textAlign: 'center' as const, margin: '25px 0' };
 const button = { backgroundColor: '#2563eb', borderRadius: '8px', color: '#fff', fontSize: '16px', fontWeight: 'bold', textDecoration: 'none', textAlign: 'center' as const, display: 'inline-block', padding: '12px 24px' };

@@ -193,12 +193,13 @@ export async function saveInspection(formData: {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
 
-      const subject = `Inspection Report - ${siteData?.name || 'N/A'}`;
+      const subject = `Site Inspection Report - ${siteData?.name || 'N/A'} (${builderData?.name || 'N/A'})`;
 
       // Construct the HTML Email Body
       const htmlBody = await render(React.createElement(InspectionReportEmail, {
         inspectorName,
         siteName: siteData?.name || 'N/A',
+        builderName: builderData?.name || 'N/A',
         date: displayDate
       }));
 
