@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Saint Contractor App',
-    short_name: 'Saint',
-    description: 'A premium app for managing contractors',
+    name: 'Saint App',
+    short_name: 'Saint App',
+    description: 'A premium app for managing internal operations and resources of Saint Group.',
     start_url: '/',
     display: 'standalone', // This makes it look like a native app (hides browser UI)
     background_color: '#f4f4f5',
