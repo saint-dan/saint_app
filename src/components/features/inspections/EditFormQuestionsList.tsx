@@ -102,7 +102,7 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
     setIsDeleting(false);
 
     if (result.success) {
-      router.push('/dashboard/inspections/edit_form');
+      router.push('/inspections/edit_form');
     } else {
       console.error(result.error);
       setIsDeleteModalOpen(false);
@@ -136,7 +136,7 @@ export default function EditFormQuestionsList({ sectionId, sectionTitle, initial
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
         <div>
-          <Link href="/dashboard/inspections/edit_form" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+          <Link href="/inspections/edit_form" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>

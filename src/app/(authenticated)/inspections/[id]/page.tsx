@@ -40,7 +40,7 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
       .single();
 
     if (!data) {
-      redirect('/dashboard/inspections');
+      redirect('/inspections');
     }
     inspection = data;
 

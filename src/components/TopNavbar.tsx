@@ -86,7 +86,7 @@ export default function TopNavbar({ email, profile }: { email?: string, profile:
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
-                      router.push('/dashboard/inspections?status=Completed');
+                      router.push('/inspections?status=Completed');
                     }}
                     className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                   >

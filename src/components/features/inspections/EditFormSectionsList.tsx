@@ -88,7 +88,7 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
         <div>
-          <Link href="/dashboard/inspections?status=Completed" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+          <Link href="/inspections?status=Completed" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
@@ -135,7 +135,7 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
               </div>
 
               {/* Content */}
-              <Link href={`/dashboard/inspections/edit_form/${section.id}`} className="flex-1 min-w-0 block">
+              <Link href={`/inspections/edit_form/${section.id}`} className="flex-1 min-w-0 block">
                 <h3 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{section.title}</h3>
               </Link>
 
@@ -146,7 +146,7 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
 
               {/* Link Arrow */}
               <Link 
-                href={`/dashboard/inspections/edit_form/${section.id}`} 
+                href={`/inspections/edit_form/${section.id}`} 
                 className="shrink-0 p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">

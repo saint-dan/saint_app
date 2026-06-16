@@ -53,7 +53,7 @@ export default async function EditSectionQuestionsPage({
     .single();
 
   if (!section) {
-    redirect('/dashboard/inspections/edit_form');
+    redirect('/inspections/edit_form');
   }
 
   // Fetch the questions for this section

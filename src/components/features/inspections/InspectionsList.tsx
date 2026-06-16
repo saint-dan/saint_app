@@ -143,7 +143,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
         <div className="flex flex-wrap items-center gap-3">
           {roleName === 'Admin' && (
             <Link 
-              href="/dashboard/inspections/edit_form"
+              href="/inspections/edit_form"
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2 border border-slate-200"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,7 +153,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
             </Link>
           )}
           <Link 
-            href="/dashboard/inspections/new"
+            href="/inspections/new"
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2"
           >
             + New Inspection
@@ -246,7 +246,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                 initialInspections.map((inspection) => (
                   <tr 
                     key={inspection.id} 
-                    onClick={() => router.push(`/dashboard/inspections/${inspection.id}`)}
+                    onClick={() => router.push(`/inspections/${inspection.id}`)}
                     className="hover:bg-blue-50/40 transition-colors group cursor-pointer"
                   >
                     <td className="px-6 py-5 text-sm font-semibold text-slate-900 whitespace-nowrap">
@@ -264,7 +264,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                     <td className="px-6 py-5 text-right whitespace-nowrap">
                       {currentStatus === 'Draft' ? (
                         <Link
-                          href={`/dashboard/inspections/${inspection.id}`}
+                          href={`/inspections/${inspection.id}`}
                           onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:text-blue-800 hover:border-blue-200 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-all shadow-sm"
                         >

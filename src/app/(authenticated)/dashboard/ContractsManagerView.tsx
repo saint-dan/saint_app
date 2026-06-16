@@ -34,7 +34,7 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
           <h3 className="text-xl font-bold text-slate-900">Inspection Reports</h3>
           <div className="flex items-center">
             <Link
-              href="/dashboard/inspections/new"
+              href="/inspections/new"
               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-sm transition-all text-sm flex items-center gap-2 whitespace-nowrap"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -46,7 +46,7 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Link href="/dashboard/inspections?status=Draft" className="block p-6 bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-100 hover:shadow-md hover:border-amber-200 transition-all cursor-pointer group">
+          <Link href="/inspections?status=Draft" className="block p-6 bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-100 hover:shadow-md hover:border-amber-200 transition-all cursor-pointer group">
             <div className="flex justify-between items-start">
               <h4 className="font-bold text-amber-900 mb-2 group-hover:text-amber-700 transition-colors">Draft</h4>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-amber-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all">
@@ -56,7 +56,7 @@ export default async function ContractsManagerView({ profile }: { profile: UserP
             <p className="text-amber-700 text-4xl font-extrabold tracking-tight">{draftCount || 0}</p>
           </Link>
           
-          <Link href="/dashboard/inspections?status=Completed" className="block p-6 bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl border border-green-100 hover:shadow-md hover:border-green-200 transition-all cursor-pointer group">
+          <Link href="/inspections?status=Completed" className="block p-6 bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl border border-green-100 hover:shadow-md hover:border-green-200 transition-all cursor-pointer group">
             <div className="flex justify-between items-start">
               <h4 className="font-bold text-green-900 mb-2 group-hover:text-green-700 transition-colors">Completed</h4>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-green-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all">

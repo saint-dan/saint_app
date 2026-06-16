@@ -340,7 +340,7 @@ export default function NewInspectionForm({
 
       const result = await saveInspection(submissionData);
       if (result.success) {
-        router.push('/dashboard/inspections?status=Completed');
+        router.push('/inspections?status=Completed');
       } else {
         setError(result.error || 'Failed to submit inspection');
         setIsSubmitting(false);
@@ -383,7 +383,7 @@ export default function NewInspectionForm({
     setShowDeleteConfirm(false);
     const result = await deleteInspection(inspectionId);
     if (result.success) {
-      router.push('/dashboard/inspections?status=Completed');
+      router.push('/inspections?status=Completed');
     } else {
       setError(result.error || 'Failed to delete inspection');
       setIsDeleting(false);
@@ -398,7 +398,7 @@ export default function NewInspectionForm({
       {/* Page Title & Cancel Button */}
       <div className="mb-8 flex items-center justify-between px-6 sm:px-10">
         <div>
-          <Link href="/dashboard/inspections?status=Completed" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+          <Link href="/inspections?status=Completed" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
@@ -435,7 +435,7 @@ export default function NewInspectionForm({
               disabled={isSubmitting || isDeleting}
               onClick={async () => {
                 if (headerData.builderId) await autoSaveDraft(undefined, 'draft');
-                router.push('/dashboard/inspections?status=Completed');
+                router.push('/inspections?status=Completed');
               }}
               className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all text-sm flex items-center gap-2 shadow-sm disabled:opacity-50"
             >
@@ -864,7 +864,7 @@ export default function NewInspectionForm({
             ) : !isReadOnly && (
               <button
                 type="button"
-                onClick={() => router.push('/dashboard/inspections?status=Completed')}
+                onClick={() => router.push('/inspections?status=Completed')}
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-red-600 font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
