@@ -79,6 +79,13 @@ export default async function InspectionsPage({
 
   const { data: inspections } = await finalQuery.order('created_at', { ascending: false });
 
+  // Fetch available templates (Inspection Types) for the New Inspection modal
+  const { data: templatesData } = await queryClient
+    .from('inspection_templates')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('name', { ascending: true });
+
   // Helpers for extracting names from relational columns
   const getNestedName = (obj: any) => {
     if (!obj) return '';
@@ -160,6 +167,7 @@ export default async function InspectionsPage({
         roleName={roleName}
         inspectors={inspectorsList}
         currentInspectorId={inspectorIdFilter}
+        templates={templatesData || []}
       />
     </div>
   );

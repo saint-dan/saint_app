@@ -420,6 +420,25 @@ export async function createInspectionQuestion(sectionId: string, questionText: 
   return { success: true, question: data };
 }
 
+export async function updateInspectionSection(id: string, title: string) {
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
+
+  const { error: updateError } = await adminClient
+    .from('inspection_sections')
+    .update({ title } as any)
+    .eq('id', id);
+
+  if (updateError) {
+    return { success: false, error: 'Failed to update section: ' + updateError.message };
+  }
+
+  revalidatePath('/inspections/edit_form', 'layout');
+  return { success: true };
+}
+
 export async function updateInspectionQuestionOrders(updates: { id: string; display_order: number }[], sectionId: string) {
   const { adminClient, error: authError } = await requireAdmin();
   if (authError || !adminClient) {
@@ -612,4 +631,32 @@ export async function updateUserStatus(userId: string, status: string) {
   
   revalidatePath('/admin/users', 'layout');
   return { success: true };
+}
+
+export async function createDraftInspection(templateId: string) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (!user || authError) {
+    return { success: false, error: 'User not authenticated' };
+  }
+
+  // Date format needs to be YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data, error } = await supabase
+    .from('site_inspections')
+    .insert({
+      template_id: templateId,
+      inspector_id: user.id,
+      status: 'Draft',
+      inspection_date: today
+    })
+    .select('id')
+    .single();
+
+  if (error || !data) return { success: false, error: 'Failed to create draft: ' + error?.message };
+
+  revalidatePath('/inspections');
+  return { success: true, inspectionId: data.id };
 }

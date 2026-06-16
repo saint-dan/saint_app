@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ROLES } from '@/lib/constants';
+import { createDraftInspection } from '../../../../actions';
 
 interface InspectionsListProps {
   initialInspections: any[];
@@ -16,14 +17,18 @@ interface InspectionsListProps {
   roleName?: string;
   inspectors?: { id: string; name: string }[];
   currentInspectorId?: string;
+  templates?: { id: string; name: string }[];
 }
 
-export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages, currentSortField, currentSortOrder, roleName, inspectors = [], currentInspectorId = '' }: InspectionsListProps) {
+export default function InspectionsList({ initialInspections, currentStatus, currentQuery, currentPage, totalPages, currentSortField, currentSortOrder, roleName, inspectors = [], currentInspectorId = '', templates = [] }: InspectionsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
   const [searchTerm, setSearchTerm] = useState(currentQuery);
+  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [selectedTypeId, setSelectedTypeId] = useState('');
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +113,19 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
     return `${rel.first_name || ''} ${rel.last_name || ''}`.trim() || '-';
   };
 
+  const handleStartInspection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTypeId) return;
+    setIsCreatingDraft(true);
+    const result = await createDraftInspection(selectedTypeId);
+    if (result.success && result.inspectionId) {
+      router.push(`/inspections/${result.inspectionId}`);
+    } else {
+      alert(result.error || 'Failed to create draft inspection');
+      setIsCreatingDraft(false);
+    }
+  };
+
   const SortIcon = ({ field }: { field: string }) => {
     if (currentSortField !== field) {
       return (
@@ -153,12 +171,12 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
               Edit Template
             </Link>
           )}
-          <Link 
-            href="/inspections/new"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2"
+          <button 
+            onClick={() => setIsNewModalOpen(true)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-sm transition-colors text-sm flex items-center gap-2"
           >
             + New Inspection
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -225,7 +243,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                   <div className="flex items-center gap-2">Date <SortIcon field="date" /></div>
                 </th>
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('template')}>
-                  <div className="flex items-center gap-2">Template <SortIcon field="template" /></div>
+                  <div className="flex items-center gap-2">Inspection Type <SortIcon field="template" /></div>
                 </th>
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('builder')}>
                   <div className="flex items-center gap-2">Builder <SortIcon field="builder" /></div>
@@ -322,6 +340,37 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
           </div>
         )}
       </div>
+
+      {/* New Inspection Modal */}
+      {isNewModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-extrabold text-slate-900 mb-4">Start New Inspection</h2>
+            <form onSubmit={handleStartInspection}>
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-slate-700 mb-2">Inspection Type</label>
+                <select 
+                  required 
+                  value={selectedTypeId} 
+                  onChange={(e) => setSelectedTypeId(e.target.value)} 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-700 font-medium"
+                >
+                  <option value="" disabled>Select an Inspection Type...</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex w-full gap-3">
+                <button type="button" onClick={() => setIsNewModalOpen(false)} disabled={isCreatingDraft} className="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors">Cancel</button>
+                <button type="submit" disabled={isCreatingDraft || !selectedTypeId} className="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl shadow-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                  {isCreatingDraft ? 'Starting...' : 'Start'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

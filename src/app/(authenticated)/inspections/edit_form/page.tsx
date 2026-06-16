@@ -1,6 +1,6 @@
 /**
- * Route: /inspections/edit_form/[templateId]
- * Description: Server Component displaying sections filtered by a specific Template.
+ * Route: /inspections/edit_form
+ * Description: Server Component displaying the list of Inspection Templates available to edit.
  */
 import React from 'react';
 import { redirect } from 'next/navigation';
@@ -8,14 +8,11 @@ import { createClient } from '@/utils/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { Database } from '@/types/database.types';
 import { ROLES } from '@/lib/constants';
-import EditFormSectionsList from '@/components/features/inspections/EditFormSectionsList';
+import EditFormTemplatesList from '@/components/features/inspections/EditFormTemplatesList';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SectionsPage({ params }: { params: Promise<{ templateId: string }> }) {
-  const resolvedParams = await params;
-  const { templateId } = resolvedParams;
-
+export default async function TemplatesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -32,45 +29,28 @@ export default async function SectionsPage({ params }: { params: Promise<{ templ
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Fetch template details
-  const { data: template } = await adminClient
+  // Fetch active templates
+  const { data: templates } = await adminClient
     .from('inspection_templates')
-    .select('name')
-    .eq('id', templateId)
-    .single();
-
-  if (!template) redirect('/inspections/edit_form');
-
-  // Fetch sections for this template
-  const { data: sections } = await adminClient
-    .from('inspection_sections')
     .select(`
       id,
-      title,
-      display_order,
-      inspection_questions(id, is_active)
+      name,
+      description,
+      inspection_sections (id)
     `)
-    .eq('template_id', templateId)
     .eq('is_active', true)
-    .order('display_order', { ascending: true });
+    .order('created_at', { ascending: true });
 
-  const formattedSections = (sections || []).map(s => {
-    const activeQuestions = s.inspection_questions?.filter((q: any) => q.is_active !== false) || [];
-    return {
-      id: s.id,
-      title: s.title,
-      display_order: s.display_order,
-      questionCount: activeQuestions.length
-    };
-  });
+  const formattedTemplates = (templates || []).map(t => ({
+    id: t.id,
+    name: t.name,
+    description: t.description || '',
+    sectionCount: t.inspection_sections ? t.inspection_sections.length : 0
+  }));
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <EditFormSectionsList 
-        initialSections={formattedSections} 
-        templateId={templateId}
-        templateName={template.name}
-      />
+      <EditFormTemplatesList initialTemplates={formattedTemplates} />
     </div>
   );
 }

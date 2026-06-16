@@ -1,5 +1,5 @@
 /**
- * Route: /dashboard/inspections/edit_form/[sectionId]
+ * Route: /inspections/edit_form/[templateId]/[sectionId]
  * Description: Server Component for Admin to edit questions within a specific inspection section.
  */
 import React from 'react';
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export default async function EditSectionQuestionsPage({
   params,
 }: {
-  params: Promise<{ sectionId: string }>;
+  params: Promise<{ templateId: string; sectionId: string }>;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -39,7 +39,7 @@ export default async function EditSectionQuestionsPage({
   }
 
   const resolvedParams = await params;
-  const sectionId = resolvedParams.sectionId;
+  const { templateId, sectionId } = resolvedParams;
 
   const adminClient = createAdminClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,7 +54,7 @@ export default async function EditSectionQuestionsPage({
     .single();
 
   if (!section) {
-    redirect('/inspections/edit_form');
+    redirect(`/inspections/edit_form/${templateId}`);
   }
 
   // Fetch the questions for this section
@@ -73,7 +73,13 @@ export default async function EditSectionQuestionsPage({
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <EditFormQuestionsList sectionId={section.id} sectionTitle={section.title} initialQuestions={questions || []} responseTypes={responseTypes || []} />
+      <EditFormQuestionsList 
+        templateId={templateId} 
+        sectionId={section.id} 
+        sectionTitle={section.title} 
+        initialQuestions={questions || []} 
+        responseTypes={responseTypes || []} 
+      />
     </div>
   );
 }
