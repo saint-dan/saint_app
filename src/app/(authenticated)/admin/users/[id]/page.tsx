@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import StatusButtons from './StatusButtons';
 import EditableUserForm from './EditableUserForm';
 import { createClient } from '@/utils/supabase/server';
+import UserProfileActions from './UserProfileActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,7 @@ export default async function UserProfilePage(props: { params: Promise<{ id: str
 
   const supabase = await createClient();
   const { data: locations } = await supabase.from('locations').select('id, name').eq('is_active', true);
+  const { data: roles } = await supabase.from('roles').select('id, name, description').order('name');
 
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -40,17 +42,27 @@ export default async function UserProfilePage(props: { params: Promise<{ id: str
               Back to Users
             </Link>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">User Profile</h1>
-            <p className="text-slate-500 font-medium mt-1">View and manage user details.</p>
           </div>
-          
-          {/* Status Buttons for Pending Users */}
-          {userDetails.status === 'Pending' && (
-            <StatusButtons userId={userDetails.id} />
-          )}
         </div>
 
         {/* Main Card */}
-        <EditableUserForm userDetails={userDetails} locations={locations || []} />
+        <EditableUserForm 
+          userDetails={userDetails} 
+          locations={locations || []} 
+          actions={
+            <>
+              {userDetails.status === 'Pending' && (
+                <StatusButtons userId={userDetails.id} />
+              )}
+              <UserProfileActions 
+                userId={userDetails.id}
+                currentRoleId={userDetails.role_id || ''}
+                currentStatus={userDetails.status || 'Active'}
+                roles={roles || []}
+              />
+            </>
+          }
+        />
       </div>
     </div>
   );

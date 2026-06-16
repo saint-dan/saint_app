@@ -30,7 +30,7 @@
 
 ## Strict Coding Conventions & Standards
 - **Directory Structure:** Using the `src/` directory. All Next.js pages go inside `src/app/`.
-- **File-Level Documentation:** Add a standardized file-level comment block (JSDoc style) at the top of every `page.tsx` file detailing the `Route` and `Description`. This prevents AI context confusion and ensures code is placed in the correct file.
+- **File-Level Documentation:** Add a standardized file-level comment block (JSDoc style) at the top of EVERY file (pages, components, utilities, etc.) detailing the `Route` (or Component name) and a brief `Description` of its purpose. This prevents AI context confusion and ensures code is placed in the correct file.
 - **Component Composition & RSC:** Leverage React Server Components (RSC) by default for data fetching to eliminate client-side loading spinners. Use `'use client'` strictly for interactive boundary components (e.g., dropdowns, form interactions).
 - **Separation of Concerns:** Keep page controllers clean by delegating UI logic to specialized sub-components (e.g., `AdminView`, `SubcontractorView`, `DashboardHeader`).
 - **Authentication:** Cookie-based Authentication using Supabase.

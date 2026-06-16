@@ -129,3 +129,62 @@ export async function inviteAdminUser(data: { firstName: string; lastName: strin
 
   revalidatePath('/admin/users');
 }
+
+export async function resendInviteAction(userId: string) {
+  await verifyAdmin();
+  const supabaseAdmin = getAdminClient();
+
+  // Get user details
+  const { data: userRecord, error: fetchError } = await supabaseAdmin
+    .from('users')
+    .select('email, first_name')
+    .eq('id', userId)
+    .single();
+
+  if (fetchError || !userRecord) throw new Error('User not found');
+
+  const getSiteUrl = () => {
+    let url =
+      process?.env?.NEXT_PUBLIC_SITE_URL ??
+      process?.env?.NEXT_PUBLIC_VERCEL_URL ??
+      'http://localhost:3000';
+    url = url.includes('http') ? url : `https://${url}`;
+    url = url.endsWith('/') ? url.slice(0, -1) : url;
+    return url;
+  };
+  const appUrl = getSiteUrl();
+
+  // Generate a fresh invite link
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'invite',
+    email: userRecord.email
+  });
+
+  if (linkError) throw new Error('Failed to generate new invite link: ' + linkError.message);
+
+  const hashedToken = linkData.properties.hashed_token;
+  const actionLink = `${appUrl}/auth/confirm?token_hash=${hashedToken}&type=invite&next=/dashboard`;
+
+  // Render and send the email
+  const htmlBody = await render(React.createElement(InviteUserEmail, {
+    firstName: userRecord.first_name || '',
+    actionLink
+  }));
+
+  const webhookPayload = {
+    email: userRecord.email,
+    subject: 'Your Invitation to the Saint App (Reminder)',
+    htmlBody,
+    attachments: []
+  };
+
+  const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL_EMAILS;
+  if (zapierWebhookUrl) {
+    const zapierResponse = await fetch(zapierWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(webhookPayload),
+    });
+    if (!zapierResponse.ok) console.error('Zapier Webhook Error:', await zapierResponse.text());
+  }
+}

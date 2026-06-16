@@ -39,7 +39,6 @@ export default async function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-6 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">User Management</h1>
-          <p className="text-slate-500 mt-1">Manage team members, fitters, and site inspectors.</p>
         </div>
         <InviteUserButton roles={roles || []} locations={locations || []} />
       </div>

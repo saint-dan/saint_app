@@ -166,7 +166,6 @@ export default function ProfilePage() {
               Back to Dashboard
             </Link>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">My Profile</h1>
-            <p className="text-slate-500 font-medium mt-1">Manage your profile and account details.</p>
           </div>
         </div>
 
@@ -350,10 +349,11 @@ export default function ProfilePage() {
                       >
                         <option value="Self-Employed">Self-Employed</option>
                         <option value="Limited Company">Limited Company</option>
+                        <option value="Saint Employee">Saint Employee</option>
                       </select>
                     </div>
 
-                    {formData.accountType === 'Self-Employed' ? (
+                    {formData.accountType === 'Self-Employed' && (
                       <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
                         <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
                         <input
@@ -366,7 +366,9 @@ export default function ProfilePage() {
                           required={formData.accountType === 'Self-Employed'}
                         />
                       </div>
-                    ) : (
+                    )}
+                    
+                    {formData.accountType === 'Limited Company' && (
                       <div className="space-y-2 animate-in fade-in zoom-in-95 duration-300">
                         <label htmlFor="companyRegNumber" className="text-sm font-semibold text-slate-700">Company Reg Number</label>
                         <input
@@ -382,35 +384,37 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
-                      <input
-                        type="text"
-                        id="utr"
-                        name="utr"
-                        value={formData.utr}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
-                        required
-                      />
-                    </div>
+                  {formData.accountType !== 'Saint Employee' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                      <div className="space-y-2">
+                        <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
+                        <input
+                          type="text"
+                          id="utr"
+                          name="utr"
+                          value={formData.utr}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm"
+                          required
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
-                      <select
-                        id="cisStatus"
-                        name="cisStatus"
-                        value={formData.cisStatus}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
-                      >
-                        <option value="20%">20% Deduction</option>
-                        <option value="30%">30% Deduction</option>
-                        <option value="Gross">Gross (0% Deduction)</option>
-                      </select>
+                      <div className="space-y-2">
+                        <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
+                        <select
+                          id="cisStatus"
+                          name="cisStatus"
+                          value={formData.cisStatus}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm text-slate-700"
+                        >
+                          <option value="20%">20% Deduction</option>
+                          <option value="30%">30% Deduction</option>
+                          <option value="Gross">Gross (0% Deduction)</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}

@@ -98,7 +98,7 @@ export default function UsersTable({ users }: UsersTableProps) {
             
             const statusStyle = u.status === 'Active' 
               ? 'bg-green-100 text-green-700 border-green-200' 
-              : u.status === 'Pending'
+              : (u.status === 'Pending' || u.status === 'Invited')
               ? 'bg-amber-100 text-amber-700 border-amber-200'
               : 'bg-slate-100 text-slate-700 border-slate-200';
 

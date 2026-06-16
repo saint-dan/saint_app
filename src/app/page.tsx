@@ -354,10 +354,11 @@ export default function ContractorRegistration() {
                 >
                   <option value="Self-Employed">Self-Employed</option>
                   <option value="Limited Company">Limited Company</option>
+                  <option value="Saint Employee">Saint Employee</option>
                 </select>
               </div>
 
-              {formData.accountType === 'Self-Employed' ? (
+              {formData.accountType === 'Self-Employed' && (
                 <div className="space-y-2">
                   <label htmlFor="nationalInsurance" className="text-sm font-semibold text-slate-700">National Insurance Number</label>
                   <input
@@ -371,7 +372,9 @@ export default function ContractorRegistration() {
                     required={step === 2 && formData.accountType === 'Self-Employed'}
                   />
                 </div>
-              ) : (
+              )}
+              
+              {formData.accountType === 'Limited Company' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="companyName" className="text-sm font-semibold text-slate-700">Company Name</label>
@@ -402,36 +405,38 @@ export default function ContractorRegistration() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
-                  <input
-                    type="text"
-                    id="utr"
-                    name="utr"
-                    value={formData.utr}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
-                    placeholder="12345 67890"
-                    required={step === 2}
-                  />
-                </div>
+              {formData.accountType !== 'Saint Employee' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                  <div className="space-y-2">
+                    <label htmlFor="utr" className="text-sm font-semibold text-slate-700">Unique Taxpayer Reference (UTR)</label>
+                    <input
+                      type="text"
+                      id="utr"
+                      name="utr"
+                      value={formData.utr}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow"
+                      placeholder="12345 67890"
+                      required={step === 2}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
-                  <select
-                    id="cisStatus"
-                    name="cisStatus"
-                    value={formData.cisStatus}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
-                  >
-                    <option value="20%">20% Deduction</option>
-                    <option value="30%">30% Deduction</option>
-                    <option value="Gross">Gross (0% Deduction)</option>
-                  </select>
+                  <div className="space-y-2">
+                    <label htmlFor="cisStatus" className="text-sm font-semibold text-slate-700">CIS Tax Gross Status</label>
+                    <select
+                      id="cisStatus"
+                      name="cisStatus"
+                      value={formData.cisStatus}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 shadow-sm hover:shadow text-slate-700"
+                    >
+                      <option value="20%">20% Deduction</option>
+                      <option value="30%">30% Deduction</option>
+                      <option value="Gross">Gross (0% Deduction)</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
