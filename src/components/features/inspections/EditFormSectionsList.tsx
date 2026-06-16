@@ -14,9 +14,11 @@ export interface SectionData {
 
 interface EditFormSectionsListProps {
   initialSections: SectionData[];
+  templateId: string;
+  templateName: string;
 }
 
-export default function EditFormSectionsList({ initialSections }: EditFormSectionsListProps) {
+export default function EditFormSectionsList({ initialSections, templateId, templateName }: EditFormSectionsListProps) {
   const router = useRouter();
   const [sections, setSections] = useState<SectionData[]>(initialSections);
   
@@ -56,7 +58,7 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
 
       // Map data for server action
       const updates = updatedSections.map(s => ({ id: s.id, display_order: s.display_order }));
-      await updateInspectionSectionOrders(updates);
+      await updateInspectionSectionOrders(updates, templateId);
       router.refresh(); // Refresh page data
     }
     
@@ -69,7 +71,7 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
     if (!newSectionTitle.trim()) return;
     
     setIsSubmitting(true);
-    const result = await createInspectionSection(newSectionTitle.trim());
+    const result = await createInspectionSection(newSectionTitle.trim(), templateId);
     setIsSubmitting(false);
 
     if (result.success && result.section) {
@@ -88,13 +90,13 @@ export default function EditFormSectionsList({ initialSections }: EditFormSectio
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
         <div>
-          <Link href="/inspections?status=Completed" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
+          <Link href="/inspections/edit_form" className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
-            Back
+            Back to Templates
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspection Report Template</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{templateName}</h1>
           <h2 className="text-lg font-semibold text-slate-500 mt-1">Sections</h2>
         </div>
         <div className="flex items-center gap-3">

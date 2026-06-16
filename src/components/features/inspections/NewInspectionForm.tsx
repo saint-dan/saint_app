@@ -12,6 +12,7 @@ import InspectionPDF from './InspectionPDF';
 
 interface NewInspectionFormProps {
   profile: any;
+  templateId: string;
   builders: any[];
   sites: any[];
   sections: any[];
@@ -28,6 +29,7 @@ interface NewInspectionFormProps {
 
 export default function NewInspectionForm({
   profile,
+  templateId,
   builders,
   sites,
   sections,
@@ -212,6 +214,7 @@ export default function NewInspectionForm({
       const currentSignatures = overrideSignatures || signatures;
       const submissionData = {
         inspectionId: inspectionId || undefined,
+        templateId,
         builderId: headerData.builderId,
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,
@@ -345,6 +348,7 @@ export default function NewInspectionForm({
       setSubmitStatusMessage('Finalising inspection record...');
       const submissionData = {
         inspectionId: inspectionId || undefined,
+        templateId,
         builderId: headerData.builderId,
         siteId: headerData.siteId,
         operativesOnSite: parseInt(headerData.operativesOnSite, 10) || 0,

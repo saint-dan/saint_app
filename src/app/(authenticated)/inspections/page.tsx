@@ -66,7 +66,8 @@ export default async function InspectionsPage({
       inspector_id,
       builders(name),
       sites(name),
-      users(first_name, last_name)
+      users(first_name, last_name),
+      inspection_templates(name)
     `)
     .eq('status', status);
 
@@ -125,6 +126,7 @@ export default async function InspectionsPage({
     let valB = '';
 
     switch (sortField) {
+      case 'template': valA = getNestedName(a.inspection_templates).toLowerCase(); valB = getNestedName(b.inspection_templates).toLowerCase(); break;
       case 'builder': valA = getNestedName(a.builders).toLowerCase(); valB = getNestedName(b.builders).toLowerCase(); break;
       case 'site': valA = getNestedName(a.sites).toLowerCase(); valB = getNestedName(b.sites).toLowerCase(); break;
       case 'inspector': valA = getUserName(a.users).toLowerCase(); valB = getUserName(b.users).toLowerCase(); break;

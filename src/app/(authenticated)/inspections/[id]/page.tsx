@@ -107,6 +107,7 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
         initialDate={inspection?.inspection_date}
         isReadOnly={inspection?.status === 'Completed'}
         pdfUrl={inspection?.pdf_url}
+        templateId={inspection.template_id}
       />
     </div>
   );

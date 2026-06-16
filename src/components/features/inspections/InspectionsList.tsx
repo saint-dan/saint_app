@@ -224,6 +224,9 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('date')}>
                   <div className="flex items-center gap-2">Date <SortIcon field="date" /></div>
                 </th>
+                <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('template')}>
+                  <div className="flex items-center gap-2">Template <SortIcon field="template" /></div>
+                </th>
                 <th className="px-6 py-5 cursor-pointer hover:bg-slate-100 transition-colors group select-none" onClick={() => handleSort('builder')}>
                   <div className="flex items-center gap-2">Builder <SortIcon field="builder" /></div>
                 </th>
@@ -239,7 +242,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
             <tbody className="divide-y divide-slate-100">
               {initialInspections.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">
                     No {currentStatus.toLowerCase()} inspection reports found.
                   </td>
                 </tr>
@@ -252,6 +255,9 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
                   >
                     <td className="px-6 py-5 text-sm font-semibold text-slate-900 whitespace-nowrap">
                       {formatDate(inspection.inspection_date)}
+                    </td>
+                    <td className="px-6 py-5 text-sm font-medium text-slate-700">
+                      {extractName(inspection.inspection_templates) || 'Standard'}
                     </td>
                     <td className="px-6 py-5 text-sm font-medium text-slate-700">
                       {extractName(inspection.builders)}

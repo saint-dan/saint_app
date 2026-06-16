@@ -134,6 +134,7 @@ export type Database = {
           display_order: number
           id: string
           is_active: boolean | null
+          template_id: string
           title: string
         }
         Insert: {
@@ -141,6 +142,7 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean | null
+          template_id: string
           title: string
         }
         Update: {
@@ -148,9 +150,18 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean | null
+          template_id?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inspection_sections_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inspection_signatures: {
         Row: {
@@ -193,6 +204,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inspection_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
       }
       locations: {
         Row: {
@@ -296,6 +331,7 @@ export type Database = {
           site_id: string | null
           status: string | null
           supervisor_qualification: string | null
+          template_id: string
         }
         Insert: {
           builder_id?: string | null
@@ -308,6 +344,7 @@ export type Database = {
           site_id?: string | null
           status?: string | null
           supervisor_qualification?: string | null
+          template_id: string
         }
         Update: {
           builder_id?: string | null
@@ -320,6 +357,7 @@ export type Database = {
           site_id?: string | null
           status?: string | null
           supervisor_qualification?: string | null
+          template_id?: string
         }
         Relationships: [
           {
@@ -341,6 +379,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_inspections_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
             referencedColumns: ["id"]
           },
         ]

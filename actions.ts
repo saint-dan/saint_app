@@ -111,6 +111,7 @@ export async function updatePassword(formData: FormData) {
 
 export async function saveInspection(formData: {
   inspectionId?: string;
+  templateId: string;
   builderId: string;
   siteId: string;
   operativesOnSite: number;
@@ -132,6 +133,7 @@ export async function saveInspection(formData: {
 
   const headerPayload: any = {
       inspector_id: user.id,
+      template_id: formData.templateId,
       builder_id: formData.builderId || null,
       site_id: formData.siteId || null,
       operatives_on_site: formData.operativesOnSite || null,
@@ -333,7 +335,7 @@ export async function createPosition(name: string) {
   return { success: true, position: data };
 }
 
-export async function createInspectionSection(title: string) {
+export async function createInspectionSection(title: string, templateId: string) {
   const { adminClient, error: authError } = await requireAdmin();
   if (authError || !adminClient) {
     return { success: false, error: authError };
@@ -343,6 +345,7 @@ export async function createInspectionSection(title: string) {
   const { data: existing } = await adminClient
     .from('inspection_sections')
     .select('display_order')
+    .eq('template_id', templateId)
     .order('display_order', { ascending: false })
     .limit(1);
 
@@ -350,7 +353,7 @@ export async function createInspectionSection(title: string) {
 
   const { data, error: insertError } = await adminClient
     .from('inspection_sections')
-    .insert({ title, display_order: nextOrder, is_active: true })
+    .insert({ title, template_id: templateId, display_order: nextOrder, is_active: true } as any)
     .select()
     .single();
 
@@ -358,11 +361,11 @@ export async function createInspectionSection(title: string) {
     return { success: false, error: 'Failed to create section: ' + insertError?.message };
   }
 
-  revalidatePath('/inspections/edit_form');
+  revalidatePath('/inspections/edit_form', 'layout');
   return { success: true, section: data };
 }
 
-export async function updateInspectionSectionOrders(updates: { id: string; display_order: number }[]) {
+export async function updateInspectionSectionOrders(updates: { id: string; display_order: number }[], templateId: string) {
   const { adminClient, error: authError } = await requireAdmin();
   if (authError || !adminClient) {
     return { success: false, error: authError };
@@ -371,7 +374,7 @@ export async function updateInspectionSectionOrders(updates: { id: string; displ
   // Perform updates in parallel
   await Promise.all(updates.map(u => adminClient.from('inspection_sections').update({ display_order: u.display_order }).eq('id', u.id)));
 
-  revalidatePath('/inspections/edit_form');
+  revalidatePath('/inspections/edit_form', 'layout');
   return { success: true };
 }
 
@@ -446,7 +449,7 @@ export async function deleteInspectionSection(sectionId: string) {
     return { success: false, error: 'Failed to delete section: ' + deleteError.message };
   }
 
-  revalidatePath('/inspections/edit_form');
+  revalidatePath('/inspections/edit_form', 'layout');
   return { success: true };
 }
 
@@ -530,6 +533,65 @@ export async function updateUserRole(userId: string, roleId: string) {
   }
   
   revalidatePath('/admin/users', 'layout');
+  return { success: true };
+}
+
+export async function createInspectionTemplate(name: string, description?: string) {
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
+
+  const { data, error: insertError } = await adminClient
+    .from('inspection_templates')
+    .insert({ name, description, is_active: true } as any)
+    .select()
+    .single();
+
+  if (insertError || !data) {
+    return { success: false, error: 'Failed to create template: ' + insertError?.message };
+  }
+
+  revalidatePath('/inspections/edit_form', 'layout');
+  return { success: true, template: data };
+}
+
+export async function updateInspectionTemplate(id: string, updates: { name?: string; description?: string; is_active?: boolean }) {
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
+
+  const { error: updateError } = await adminClient
+    .from('inspection_templates')
+    .update(updates as any)
+    .eq('id', id);
+
+  if (updateError) {
+    return { success: false, error: 'Failed to update template: ' + updateError.message };
+  }
+
+  revalidatePath('/inspections/edit_form', 'layout');
+  return { success: true };
+}
+
+export async function deleteInspectionTemplate(id: string) {
+  const { adminClient, error: authError } = await requireAdmin();
+  if (authError || !adminClient) {
+    return { success: false, error: authError };
+  }
+
+  // We use soft-delete (is_active = false) to prevent orphaned historical records
+  const { error: deleteError } = await adminClient
+    .from('inspection_templates')
+    .update({ is_active: false } as any)
+    .eq('id', id);
+
+  if (deleteError) {
+    return { success: false, error: 'Failed to delete template: ' + deleteError.message };
+  }
+
+  revalidatePath('/inspections/edit_form', 'layout');
   return { success: true };
 }
 
