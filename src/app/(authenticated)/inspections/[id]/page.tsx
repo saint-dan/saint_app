@@ -69,7 +69,8 @@ export default async function InspectionFormPage(props: { params: Promise<{ id: 
     initialSignatures = signatureRecords?.map(s => ({
       name: s.name,
       positionId: s.position_id || '',
-      signatureData: s.signature_data
+      signatureData: s.signature_data,
+      signedAt: s.created_at
     })) || [];
 
     initialHeaderData = {

@@ -96,7 +96,7 @@ export default function NewInspectionForm({
   });
 
   // State: Signatures
-  const [signatures, setSignatures] = useState<Array<{ name: string; positionId: string; signatureData: string | null }>>(() => {
+  const [signatures, setSignatures] = useState<Array<{ name: string; positionId: string; signatureData: string | null; signedAt?: string }>>(() => {
     if (initialSignatures && initialSignatures.length > 0) {
       return initialSignatures;
     }
@@ -104,7 +104,8 @@ export default function NewInspectionForm({
     return [{
       name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
       positionId: profilePosition ? profilePosition.id : '',
-      signatureData: null
+      signatureData: null,
+      signedAt: new Date().toISOString()
     }];
   });
 
@@ -258,7 +259,7 @@ export default function NewInspectionForm({
     }
     if (formRef.current && !formRef.current.reportValidity()) return;
 
-    const newSignatures = [...signatures, { name: '', positionId: '', signatureData: null }];
+    const newSignatures = [...signatures, { name: '', positionId: '', signatureData: null, signedAt: new Date().toISOString() }];
     setSignatures(newSignatures);
     const saved = await autoSaveDraft(newSignatures, 'add');
     if (saved) setCurrentPage(prev => prev + 1);
@@ -292,17 +293,19 @@ export default function NewInspectionForm({
       const siteName = localSites.find(s => s.id === headerData.siteId)?.name || 'N/A';
       const sigsWithNames = signatures.map(sig => ({
         ...sig,
-        positionName: localPositions.find(p => p.id === sig.positionId)?.name || 'Signee'
+        positionName: localPositions.find(p => p.id === sig.positionId)?.name || 'Signee',
+        signedAt: sig.signedAt || new Date().toISOString()
       }));
 
       const pdfBlob = await pdf(
         <InspectionPDF
           date={displayDate}
           inspectorName={`${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()}
+          inspectorPosition={profile?.job_title || ''}
           builderName={builderName}
           siteName={siteName}
           operatives={headerData.operativesOnSite || 0}
-          supervisor={headerData.supervisorQualification || 'N/A'}
+          supervisor={headerData.supervisorQualification || ''}
           sections={sections}
           questions={questions}
           responses={responses}

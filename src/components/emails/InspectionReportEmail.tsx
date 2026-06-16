@@ -19,7 +19,7 @@ export default function InspectionReportEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={title}>Saint Site Inspection Report</Text>
+            <Text style={title}>Site Inspection Report</Text>
           </Section>
           
           <Section style={body}>
@@ -28,7 +28,6 @@ export default function InspectionReportEmail({
               Please find attached the completed Site Inspection Report for <strong>{siteName}</strong>, 
               conducted by {inspectorName} on {date}.
             </Text>
-            <br />
             <div dangerouslySetInnerHTML={{ __html: GLOBAL_EMAIL_SIGNATURE }} />
           </Section>
         </Container>
