@@ -21,13 +21,13 @@ export default function InspectionReportEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={title}>Site Inspection Report</Text>
+            <Text style={title}>New Inspection Report</Text>
           </Section>
           
           <Section style={body}>
             <Text style={text}>Hello,</Text>
             <Text style={text}>
-              Please find attached the completed Site Inspection Report for <br/><strong>{siteName} ({builderName})</strong><br/><br/>
+              Please find attached the completed Inspection Report.<br/>
               Completed by {inspectorName} on {date}.
             </Text>
             <div dangerouslySetInnerHTML={{ __html: GLOBAL_EMAIL_SIGNATURE }} />

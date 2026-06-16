@@ -184,8 +184,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspection Reports</h1>
-          <p className="text-slate-500 mt-1">View and manage inspection reports.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspections</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {roleName === ROLES.ADMIN && (
@@ -196,7 +195,7 @@ export default function InspectionsList({ initialInspections, currentStatus, cur
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Edit Template
+              Edit Templates
             </Link>
           )}
           <button 

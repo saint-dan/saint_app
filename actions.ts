@@ -214,7 +214,14 @@ export async function saveInspection(formData: {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
 
-      const subject = `Site Inspection Report - ${displayDate}`;
+      const { data: templateData } = await dbClient
+        .from('inspection_templates')
+        .select('name')
+        .eq('id', formData.templateId)
+        .single();
+      const templateName = templateData?.name || 'Inspection Report';
+
+      const subject = `New Inspection - ${templateName}`;
 
       // Construct the HTML Email Body
       const htmlBody = await render(React.createElement(InspectionReportEmail, {

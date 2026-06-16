@@ -14,27 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      builders: {
-        Row: {
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-        }
-        Relationships: []
-      }
       inspection_questions: {
         Row: {
           allow_photos: boolean | null
@@ -324,55 +303,39 @@ export type Database = {
       }
       site_inspections: {
         Row: {
-          builder_id: string | null
+          comments: string | null
           created_at: string | null
           id: string
           inspection_date: string
-          comments: string | null
           inspector_id: string | null
           operatives_on_site: number | null
           pdf_url: string | null
-          site_id: string | null
           status: string | null
-          supervisor_qualification: string | null
           template_id: string
         }
         Insert: {
-          builder_id?: string | null
+          comments?: string | null
           created_at?: string | null
           id?: string
           inspection_date?: string
-          comments?: string | null
           inspector_id?: string | null
           operatives_on_site?: number | null
           pdf_url?: string | null
-          site_id?: string | null
           status?: string | null
-          supervisor_qualification?: string | null
           template_id: string
         }
         Update: {
-          builder_id?: string | null
+          comments?: string | null
           created_at?: string | null
           id?: string
           inspection_date?: string
-          comments?: string | null
           inspector_id?: string | null
           operatives_on_site?: number | null
           pdf_url?: string | null
-          site_id?: string | null
           status?: string | null
-          supervisor_qualification?: string | null
           template_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "site_inspections_builder_id_fkey"
-            columns: ["builder_id"]
-            isOneToOne: false
-            referencedRelation: "builders"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "site_inspections_inspector_id_fkey"
             columns: ["inspector_id"]
@@ -381,49 +344,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "site_inspections_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "site_inspections_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "inspection_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sites: {
-        Row: {
-          builder_id: string | null
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-        }
-        Insert: {
-          builder_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-        }
-        Update: {
-          builder_id?: string | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sites_builder_id_fkey"
-            columns: ["builder_id"]
-            isOneToOne: false
-            referencedRelation: "builders"
             referencedColumns: ["id"]
           },
         ]
