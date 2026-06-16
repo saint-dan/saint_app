@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
   badgeNAText: { color: '#475569' },
   
   comments: { marginTop: 4, fontSize: 9, color: '#64748b', fontStyle: 'italic' },
+  responseValue: { marginTop: 4, fontSize: 10, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
   
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8, gap: 8 },
   photoWrapper: { width: 150, height: 100, border: '1pt solid #e2e8f0', padding: 2, borderRadius: 4 },
@@ -110,6 +111,7 @@ export default function InspectionPDF({
           return (
             <View key={section.id} style={styles.section}>
               {sectionQuestions.map((q, index) => {
+                const typeCode = q.response_types?.code || 'YES_NO_NA_COMMENTS';
                 const resp = responses[q.id] || {};
                 const isCompliant = resp.isCompliant;
                 
@@ -119,18 +121,34 @@ export default function InspectionPDF({
                 if (isCompliant === true) { badgeBgStyle = styles.badgeYesBg; badgeTextStyle = styles.badgeYesText; badgeText = 'YES'; }
                 if (isCompliant === false) { badgeBgStyle = styles.badgeNoBg; badgeTextStyle = styles.badgeNoText; badgeText = 'NO'; }
 
+                let displayValue = resp.comments;
+                if (displayValue) {
+                  if (typeCode === 'CURRENCY') {
+                    displayValue = `£${Number(displayValue).toFixed(2)}`;
+                  } else if (typeCode === 'DECIMAL') {
+                    displayValue = `${Number(displayValue).toFixed(2)}`;
+                  } else if (typeCode === 'DATE') {
+                    try {
+                      displayValue = new Date(displayValue).toLocaleDateString('en-GB');
+                    } catch (e) {
+                      // fallback to raw string if parsing fails
+                    }
+                  }
+                }
+
                 const questionContent = (
                   <View key={q.id} style={styles.questionBlock} wrap={false}>
                     <View style={styles.questionHeader}>
                       <Text style={styles.questionText}>{q.question_text}</Text>
-                      {(q.response_types?.code === 'YES_NO_NA_COMMENTS' || q.response_types?.code === 'YES_NO_NA') && (
+                      {(typeCode === 'YES_NO_NA_COMMENTS' || typeCode === 'YES_NO_NA') && (
                         <View style={[styles.badgeWrapper, badgeBgStyle]}>
                           <Text style={[styles.badgeText, badgeTextStyle]}>{badgeText}</Text>
                         </View>
                       )}
                     </View>
                     
-                    {resp.comments ? <Text style={styles.comments}>Comments: {resp.comments}</Text> : null}
+                    {displayValue && typeCode === 'YES_NO_NA_COMMENTS' && <Text style={styles.comments}>Comments: {displayValue}</Text>}
+                    {displayValue && typeCode !== 'YES_NO_NA_COMMENTS' && typeCode !== 'YES_NO_NA' && <Text style={styles.responseValue}>{displayValue}</Text>}
                     
                     {/* Photo Evidence Grid */}
                     {resp.photoUrls && resp.photoUrls.length > 0 && (

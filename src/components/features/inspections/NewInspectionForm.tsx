@@ -693,7 +693,6 @@ export default function NewInspectionForm({
                     
                     const responseTypeCode = q.response_types?.code || 'YES_NO_NA_COMMENTS';
                     const showToggle = responseTypeCode === 'YES_NO_NA_COMMENTS' || responseTypeCode === 'YES_NO_NA';
-                    const showComments = responseTypeCode === 'YES_NO_NA_COMMENTS' || responseTypeCode === 'FREEFORM';
                     
                     return (
                       <div key={q.id} className="p-6 sm:px-8 flex flex-col gap-4 hover:bg-slate-50/50 transition-colors">
@@ -728,18 +727,81 @@ export default function NewInspectionForm({
                           )}
                         </div>
 
-                        {/* Comments Input */}
-                        {showComments && (
-                        <div>
-                          <input
-                            type="text"
-                            value={resp.comments}
-                            onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
-                            placeholder={responseTypeCode === 'FREEFORM' ? "Enter your response..." : "Add a comment... (Required if 'No')"}
-                            className={`w-full px-4 py-2.5 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm ${resp.isCompliant === false && !resp.comments && responseTypeCode === 'YES_NO_NA_COMMENTS' ? 'border-red-300 placeholder:text-red-300' : 'border-slate-200'}`}
-                            required={responseTypeCode === 'YES_NO_NA_COMMENTS' && resp.isCompliant === false}
-                          />
-                        </div>
+                        {/* Dynamic Text/Value Inputs */}
+                        {responseTypeCode !== 'YES_NO_NA' && (
+                          <div>
+                            {responseTypeCode === 'YES_NO_NA_COMMENTS' && (
+                              <input
+                                type="text"
+                                value={resp.comments || ''}
+                                onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
+                                placeholder="Add a comment... (Required if 'No')"
+                                className={`w-full px-4 py-2.5 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm ${resp.isCompliant === false && !resp.comments ? 'border-red-300 placeholder:text-red-300' : 'border-slate-200'}`}
+                                required={resp.isCompliant === false}
+                                disabled={isReadOnly}
+                              />
+                            )}
+                            {responseTypeCode === 'FREEFORM' && (
+                              <input
+                                type="text"
+                                value={resp.comments || ''}
+                                onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
+                                placeholder="Enter your response..."
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
+                                disabled={isReadOnly}
+                              />
+                            )}
+                            {responseTypeCode === 'DATE' && (
+                              <input
+                                type="date"
+                                value={resp.comments || ''}
+                                onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm text-slate-700"
+                                disabled={isReadOnly}
+                              />
+                            )}
+                            {responseTypeCode === 'INTEGER' && (
+                              <input
+                                type="number"
+                                step="1"
+                                value={resp.comments || ''}
+                                onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
+                                onBlur={(e) => {
+                                  if (e.target.value) {
+                                    const parsed = parseInt(e.target.value, 10);
+                                    if (!isNaN(parsed)) {
+                                      handleResponseChange(q.id, 'comments', parsed.toString());
+                                    }
+                                  }
+                                }}
+                                placeholder="0"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm"
+                                disabled={isReadOnly}
+                              />
+                            )}
+                            {(responseTypeCode === 'DECIMAL' || responseTypeCode === 'CURRENCY') && (
+                              <div className="relative">
+                                {responseTypeCode === 'CURRENCY' && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">£</span>}
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={resp.comments || ''}
+                                  onChange={(e) => handleResponseChange(q.id, 'comments', e.target.value)}
+                                  onBlur={(e) => {
+                                    if (e.target.value) {
+                                      const parsed = parseFloat(e.target.value);
+                                      if (!isNaN(parsed)) {
+                                        handleResponseChange(q.id, 'comments', parsed.toFixed(2));
+                                      }
+                                    }
+                                  }}
+                                  placeholder="0.00"
+                                  className={`w-full pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm text-sm ${responseTypeCode === 'CURRENCY' ? 'pl-8' : 'px-4'}`}
+                                  disabled={isReadOnly}
+                                />
+                              </div>
+                            )}
+                          </div>
                         )}
 
                         {/* Photo Evidence Upload */}
