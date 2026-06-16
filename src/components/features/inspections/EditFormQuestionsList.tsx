@@ -18,11 +18,12 @@ interface EditFormQuestionsListProps {
   templateId: string;
   sectionId: string;
   sectionTitle: string;
+  templateName: string;
   initialQuestions: any[];
   responseTypes: { id: string; name: string }[];
 }
 
-export default function EditFormQuestionsList({ templateId, sectionId, sectionTitle, initialQuestions, responseTypes }: EditFormQuestionsListProps) {
+export default function EditFormQuestionsList({ templateId, sectionId, sectionTitle, templateName, initialQuestions, responseTypes }: EditFormQuestionsListProps) {
   const router = useRouter();
   const [questions, setQuestions] = useState<QuestionData[]>(initialQuestions);
   
@@ -129,8 +130,9 @@ export default function EditFormQuestionsList({ templateId, sectionId, sectionTi
             </svg>
             Back
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspection Report Template</h1>
-          <h2 className="text-lg font-semibold text-slate-500 mt-1">Questions - {sectionTitle}</h2>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Edit Inspection Templates</h1>
+          <h2 className="text-lg font-semibold text-slate-500 mt-1">Template: {templateName}</h2>
+          <h3 className="text-lg font-semibold text-slate-500 mt-0.5">Section: {sectionTitle}</h3>
         </div>
         <div className="flex items-center gap-3">
           <button 

@@ -49,13 +49,22 @@ export default async function EditSectionQuestionsPage({
   // Fetch the section details
   const { data: section } = await adminClient
     .from('inspection_sections')
-    .select('id, title')
+    .select(`
+      id, 
+      title,
+      inspection_templates (
+        name
+      )
+    `)
     .eq('id', sectionId)
     .single();
 
   if (!section) {
     redirect(`/inspections/edit_form/${templateId}`);
   }
+
+  const templateData = section.inspection_templates as any;
+  const templateName = Array.isArray(templateData) ? templateData[0]?.name : templateData?.name || 'Unknown Template';
 
   // Fetch the questions for this section
   const { data: questions } = await adminClient
@@ -77,6 +86,7 @@ export default async function EditSectionQuestionsPage({
         templateId={templateId} 
         sectionId={section.id} 
         sectionTitle={section.title} 
+        templateName={templateName}
         initialQuestions={questions || []} 
         responseTypes={responseTypes || []} 
       />

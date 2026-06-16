@@ -102,8 +102,7 @@ export default function EditFormTemplatesList({ initialTemplates }: EditFormTemp
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inspection Templates</h1>
-          <h2 className="text-lg font-semibold text-slate-500 mt-1">Manage Report Types</h2>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Edit Inspection Templates</h1>
         </div>
         <div className="flex items-center gap-3">
           <button 

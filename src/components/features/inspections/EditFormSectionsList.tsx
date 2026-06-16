@@ -143,8 +143,8 @@ export default function EditFormSectionsList({ initialSections, templateId, temp
             </svg>
             Back to Templates
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{templateName}</h1>
-          <h2 className="text-lg font-semibold text-slate-500 mt-1">Sections</h2>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Edit Inspection Templates</h1>
+          <h2 className="text-lg font-semibold text-slate-500 mt-1">Template: {templateName}</h2>
         </div>
         <div className="flex items-center gap-3">
           <button 
