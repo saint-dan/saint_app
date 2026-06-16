@@ -19,7 +19,6 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
-  const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('');
   const [userStatus, setUserStatus] = useState('Pending');
   const [createdAt, setCreatedAt] = useState('');
@@ -28,6 +27,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    email: '',
     phone: '',
     primaryLocationId: '',
     address: '',
@@ -50,7 +50,6 @@ export default function ProfilePage() {
         return;
       }
       
-      setUserEmail(user.email || '');
       // Fetch locations for the dropdown
       const { data: locationData } = await supabase
         .from('locations')
@@ -73,6 +72,7 @@ export default function ProfilePage() {
         setFormData({
           firstName: profileData.first_name || '',
           lastName: profileData.last_name || '',
+          email: profileData.email || user.email || '',
           phone: profileData.phone || '',
           primaryLocationId: profileData.primary_location_id || '',
           address: profileData.address || '',
@@ -111,6 +111,17 @@ export default function ProfilePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    let emailUpdateMsg = '';
+    if (formData.email !== user.email) {
+      const { error: authError } = await supabase.auth.updateUser({ email: formData.email });
+      if (authError) {
+        setMessage({ type: 'error', text: 'Failed to update email: ' + authError.message });
+        setSaving(false);
+        return;
+      }
+      emailUpdateMsg = ' A confirmation link has been sent to your new email address.';
+    }
+
     // Clean and format phone number
     const cleanPhone = formData.phone.replace(/\s+/g, '');
     const formattedPhone = cleanPhone.startsWith('07') ? '+44' + cleanPhone.slice(1) : cleanPhone;
@@ -120,6 +131,7 @@ export default function ProfilePage() {
       .update({
         first_name: formData.firstName,
         last_name: formData.lastName,
+        email: formData.email,
         phone: formattedPhone,
         primary_location_id: formData.primaryLocationId,
         address: formData.address,
@@ -137,7 +149,7 @@ export default function ProfilePage() {
     if (error) {
       setMessage({ type: 'error', text: 'Failed to update profile: ' + error.message });
     } else {
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: 'success', text: 'Profile updated successfully!' + emailUpdateMsg });
       // Update local state with the formatted phone to reflect saved changes
       setFormData(prev => ({ ...prev, phone: formattedPhone }));
       setIsEditing(false);
@@ -203,15 +215,6 @@ export default function ProfilePage() {
           
           {/* Action Buttons */}
           <div className="absolute top-6 right-8 sm:top-10 sm:right-12 z-10 flex flex-wrap justify-end items-center gap-2 sm:gap-3">
-            <Link 
-              href="/profile/security"
-              className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm transition-all text-sm hidden sm:flex items-center gap-2 mr-1"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-slate-400">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-              </svg>
-              Security Settings
-            </Link>
             {!isEditing ? (
               <button 
                 onClick={() => setIsEditing(true)}
@@ -299,7 +302,7 @@ export default function ProfilePage() {
                   <div className="space-y-1">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary Location</p>
                     {isEditing ? (
-                      <select name="primaryLocationId" value={formData.primaryLocationId} disabled className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed outline-none transition-all text-sm" title="If you need to change this, please contact Saint Flooring">
+                      <select name="primaryLocationId" value={formData.primaryLocationId} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm text-slate-700">
                         <option value="">Select Location...</option>
                         {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
                       </select>
@@ -308,14 +311,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Email Address</p>
-                    {isEditing ? (
-                      <input type="email" value={userEmail} disabled className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed outline-none transition-all text-sm" title="Change your email in the Security settings" />
-                    ) : (
-                      <p className="font-medium text-slate-900 min-h-6">{userEmail}</p>
-                    )}
-                  </div>
+                  {renderInput('email', 'Email Address', 'email')}
 
                   {renderInput('phone', 'Mobile Number', 'tel')}
                   {renderInput('jobTitle', 'Job Title')}
