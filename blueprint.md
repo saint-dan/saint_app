@@ -70,6 +70,7 @@
 - **Typography:** Thoughtful typography for hierarchy and readability.
 - **Components & Styling:** Consistent UI components with depth (subtle shadows, rounded-2xl or rounded-3xl corners).
 - **Layout Constraints:** Standardize page and header constraints using `w-full max-w-[1200px] mx-auto`. This ensures a premium, contained feel on ultra-wide monitors while fluidly filling normal screens.
+- **Page Layouts & Headers:** Page titles and descriptions must be placed *outside* and *above* the main white content boxes (`bg-white rounded-3xl`). The header container should use horizontal padding (e.g., `px-8 sm:px-12`) so the text aligns perfectly with the indented content inside the white boxes below. Standard "Back" links should be placed above the title on the left, styled in blue (`text-blue-600 hover:text-blue-800 font-bold text-sm inline-flex items-center gap-1` with a left arrow SVG).
 - **Modals & Alerts:** Do not use native browser `window.confirm` or `alert`. Always implement custom, app-styled React modals with backdrop blurs (`bg-slate-900/40 backdrop-blur-sm`) to maintain a cohesive, high-end aesthetic.
 - **Primary Actions:** Standardize primary action and submit buttons to use a blue gradient (`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white`).
 - **Interactions:** Smooth micro-interactions, elegant hover states on buttons/inputs, subtle animations, and intuitive feedback.
