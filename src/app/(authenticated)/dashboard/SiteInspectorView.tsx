@@ -7,13 +7,13 @@ export default async function SiteInspectorView({ profile }: { profile: UserProf
   const supabase = await createClient();
   
   const { count: draftCount } = await supabase
-    .from('site_inspections')
+    .from('inspections')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'Draft')
     .eq('inspector_id', profile?.id || '');
     
   const { count: completedCount } = await supabase
-    .from('site_inspections')
+    .from('inspections')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'Completed')
     .eq('inspector_id', profile?.id || '');

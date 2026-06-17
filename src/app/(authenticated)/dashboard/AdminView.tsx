@@ -11,12 +11,12 @@ export default async function AdminView({ profile }: { profile: UserProfile | nu
   );
 
   const { count: draftCount } = await supabaseAdmin
-    .from('site_inspections')
+    .from('inspections')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'Draft');
     
   const { count: completedCount } = await supabaseAdmin
-    .from('site_inspections')
+    .from('inspections')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'Completed');
 
